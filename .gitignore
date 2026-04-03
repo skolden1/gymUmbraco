@@ -1,0 +1,19 @@
+# Frontend
+frontend/gym-frontend/node_modules/
+frontend/gym-frontend/dist/
+
+# Backend
+backend/**/bin/
+backend/**/obj/
+backend/**/.vs/
+
+# Visual Studio
+.vs/
+
+# Secrets
+appsettings.Development.json
+.env*
+
+# OS
+.DS_Store
+Thumbs.db
