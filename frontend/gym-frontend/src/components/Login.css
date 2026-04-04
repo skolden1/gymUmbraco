@@ -1,0 +1,47 @@
+.loginContainer h1{
+  text-align: center;
+}
+
+.loginContainer form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  max-width: 500px;
+  margin: 2rem auto;
+}
+
+.loginContainer .col {
+  display: flex;
+  flex-direction: column; 
+  gap: 5px;
+}
+
+.loginContainer label {
+  font-size: 14px;
+  color: #333;
+}
+
+.loginContainer input {
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.loginContainer .logBtn{
+  padding: 6px 6px;
+  max-width: 100px;
+  cursor: pointer;
+  border: none;
+  background-color: rgb(49, 51, 58);
+  font-weight: 600;
+  border-radius: 3px;
+  color: aliceblue;
+}
+
+.regBtn:hover{
+  background-color: rgba(49, 51, 58, 0.753);
+}
+
+.registerInfo{
+  text-align: center;
+}

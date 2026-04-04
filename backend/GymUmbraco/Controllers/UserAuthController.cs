@@ -2,9 +2,14 @@
 using GymUmbraco.Dtos;
 using GymUmbraco.Models;
 using J2N.Collections.Generic;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Text;
 
 namespace GymUmbraco.Controllers
 {
@@ -18,7 +23,7 @@ namespace GymUmbraco.Controllers
             _context = context;
         }
 
-        [HttpPost]
+        [HttpPost("register")]
         public async Task<IActionResult> Register(RegisterDto regDto)
         {
             var userAlreadyExist = await _context.Users.FirstOrDefaultAsync(u => u.Email == regDto.EmailDto);
@@ -40,7 +45,7 @@ namespace GymUmbraco.Controllers
             return Ok(new {message = "User skapad"});
         }
 
-        [HttpPost]
+        [HttpPost("login")]
         public async Task<IActionResult> Login(LoginDto loginDto)
         {
             var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == loginDto.EmailDto);
@@ -54,7 +59,56 @@ namespace GymUmbraco.Controllers
             );
             if (result != PasswordVerificationResult.Success) return Unauthorized("Fel email eller lösenord");
 
-            return Ok("Login success");
+            var jwtSettings = HttpContext.RequestServices
+                .GetRequiredService<IConfiguration>()
+                .GetSection("Jwt");
+
+            
+            var key = new SymmetricSecurityKey(
+                Encoding.UTF8.GetBytes(jwtSettings["Key"])
+            );
+
+           
+            var creds = new SigningCredentials(
+                key,
+                SecurityAlgorithms.HmacSha256
+            );
+
+            
+            var claims = new[]
+            {
+                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+                new Claim(ClaimTypes.Email, user.Email)
+            };
+
+           
+            var token = new JwtSecurityToken(
+                issuer: jwtSettings["Issuer"],
+                audience: jwtSettings["Audience"],
+                claims: claims,
+                expires: DateTime.UtcNow.AddHours(3),
+                signingCredentials: creds
+            );
+
+            
+            var jwt = new JwtSecurityTokenHandler().WriteToken(token);
+
+            return Ok(new { token = jwt });
         }
+
+        //Hämta "rätt" user genom jwt token 
+        [Authorize]
+        [HttpGet("me")]
+        public async Task<IActionResult> me()
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var email = User.FindFirst(ClaimTypes.Email)?.Value;
+            return Ok(new
+            {
+                userId,
+                email
+            });
+        }
+
     }
 }

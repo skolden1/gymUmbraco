@@ -1,0 +1,30 @@
+.createProgramContainer{
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.createProgramContainer h1{
+  text-align: center;
+}
+
+.cardContainer{
+  display: flex;
+  flex-wrap: wrap;
+  margin-top: 1.5rem;
+  justify-content: center;
+  gap: 1rem;
+}
+
+.workoutCard{
+  border: 1px solid gray;
+  padding: 10px;
+  max-width: 450px;
+}
+
+.workoutCard label{
+  display: block;
+  margin: 6px auto 6px auto;
+}
+
