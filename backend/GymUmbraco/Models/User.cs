@@ -9,5 +9,7 @@
         public string? ProfilePicUrl { get; set; }
         public string PasswordHash { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+        public List<GymProgram> Programs { get; set; } = new();
     }
 }

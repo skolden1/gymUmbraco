@@ -4,6 +4,7 @@ using GymUmbraco.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace GymUmbraco.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260409081224_addedSomeGymTables")]
+    partial class addedSomeGymTables
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -54,12 +57,7 @@ namespace GymUmbraco.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("UserId")
-                        .HasColumnType("int");
-
                     b.HasKey("Id");
-
-                    b.HasIndex("UserId");
 
                     b.ToTable("GymPrograms");
                 });
@@ -148,17 +146,6 @@ namespace GymUmbraco.Migrations
                     b.ToTable("WorkoutExercises");
                 });
 
-            modelBuilder.Entity("GymUmbraco.Models.GymProgram", b =>
-                {
-                    b.HasOne("GymUmbraco.Models.User", "User")
-                        .WithMany("Programs")
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("User");
-                });
-
             modelBuilder.Entity("GymUmbraco.Models.Workout", b =>
                 {
                     b.HasOne("GymUmbraco.Models.GymProgram", "GymProgram")
@@ -192,11 +179,6 @@ namespace GymUmbraco.Migrations
             modelBuilder.Entity("GymUmbraco.Models.GymProgram", b =>
                 {
                     b.Navigation("Workouts");
-                });
-
-            modelBuilder.Entity("GymUmbraco.Models.User", b =>
-                {
-                    b.Navigation("Programs");
                 });
 
             modelBuilder.Entity("GymUmbraco.Models.Workout", b =>
