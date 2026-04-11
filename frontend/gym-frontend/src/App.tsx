@@ -25,7 +25,7 @@ function App() {
           <Route path="/dashboard" element={<Navigate to="/login" />} />
         )}
 
-        <Route path='/CreateProgram' element={<CreateProgram/> } />
+        <Route path='/CreateProgram' element={ isAuth ? <CreateProgram/> : <Navigate to="/login" /> } />
       </Routes>
     </>
   );
