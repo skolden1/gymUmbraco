@@ -12,7 +12,7 @@ type ExerciseRowProps = {
   ex: ExerciseInput,
   //ALLA övningar
   exerciseInput: ExerciseInput[];
-  setExerciseInput: React.Dispatch<React.SetStateAction<ExerciseInput[]>>;
+  setExerciseInput: (newExercises: ExerciseInput[]) => void;
   renderOptions: React.ReactNode;
   removeExercise: (index: number) => void;
 }

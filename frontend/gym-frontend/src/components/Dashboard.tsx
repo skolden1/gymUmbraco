@@ -6,6 +6,10 @@ const Dashboard = () => {
     <div className="dashboardContainer">
       <h1>Välj ett alternativ</h1>
       <Link to="/CreateProgram" className="createProgramBtn">Skapa program</Link>
+
+      <div className="programContainer">
+        
+      </div>
     </div>
   )
 }
