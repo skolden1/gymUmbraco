@@ -3,6 +3,8 @@ using GymUmbraco.Dtos;
 using GymUmbraco.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 
 namespace GymUmbraco.Controllers
 {
@@ -20,7 +22,10 @@ namespace GymUmbraco.Controllers
         [HttpPost]
         public async Task<IActionResult> CreateProgram(CreateProgramDto dto)
         {
-            var userId = int.Parse(User.FindFirst("id").Value); //kmr från jwt som skickas med i headern från frontend
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (userIdClaim == null) return Unauthorized("User ID claim saknas");
+
+            var userId = int.Parse(userIdClaim);
 
             if (dto.Workouts == null || !dto.Workouts.Any()) return BadRequest("Program must contain at least one workout");
             var program = new GymProgram
@@ -42,6 +47,34 @@ namespace GymUmbraco.Controllers
             await _context.GymPrograms.AddAsync(program);
             await _context.SaveChangesAsync();
             return Ok();
+        }
+
+        [Authorize]
+        [HttpGet("my")]
+        public async Task<IActionResult> GetMyPrograms()
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (userIdClaim == null) return Unauthorized("User ID claim saknas");
+
+            var userId = int.Parse(userIdClaim);
+
+            var gymPrograms = await _context.GymPrograms.Where(p => p.UserId == userId)
+                .Include(p => p.Workouts)
+                .ThenInclude(p => p.WorkoutExercises)
+                .ThenInclude(p => p.Exercise)
+                .ToListAsync();
+
+            return Ok(gymPrograms);
+        }
+
+
+        // alla ska nå denna så ej authorize, detta ska ba va en global lista för alla
+        [HttpGet("exercises")]
+        public async Task<IActionResult> GetAllExercises()
+        {
+           var exercises = await _context.Exercises.ToListAsync();
+            return Ok(exercises);
+
         }
     }
 }
