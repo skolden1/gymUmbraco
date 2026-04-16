@@ -4,6 +4,7 @@ import "./CreateProgram.css"
 import ExerciseRow from "./ExerciseRow";
 import { FaTimes } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../contexts/AuthContext";
 
  //Type för exercise obj från bkend
   type Exercise = {
@@ -26,7 +27,8 @@ import { useNavigate } from "react-router-dom";
 
 const CreateProgram = () => {
   const navigate = useNavigate();
-
+  const { logout } = useAuth()
+  
   const [programName, setProgramName] = useState("");
 
   const [exercises, setExercises] = useState<Exercise[]>([]);
@@ -69,6 +71,11 @@ const CreateProgram = () => {
   });
 
   if (!res.ok) {
+    //om token rinner ut så navigeras man till login
+    if(res.status === 401){
+          logout();
+          navigate("/login");
+    }
     const text = await res.text();
     console.log(text);
     alert("Något gick fel");

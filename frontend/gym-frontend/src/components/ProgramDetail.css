@@ -1,0 +1,98 @@
+
+h1 {
+  text-align: center;
+  margin-top: 20px;
+}
+
+.programWrapper {
+  background-color: #ffffff;
+  border: 1px solid #dcdcdc;
+  border-radius: 12px;
+
+  padding: 24px;
+  margin: 20px auto;
+
+  max-width: 800px;
+  width: 100%;
+}
+
+.progDetailRow{
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.editIkon{
+  font-size: 20px;
+}
+
+.editBtn{
+  width: 36px;
+  height: 36px;
+  cursor: pointer;
+  border-radius: 50%; 
+  border: none;
+}
+
+.editBtn:hover{
+  background-color: #9c9b9b8e;
+}
+
+.progDetailRow p{
+  font-weight: bold;
+}
+
+.workoutCard {
+  border: 1px solid #eeeeee;
+  border-radius: 8px;
+  padding: 14px 16px;
+
+  background-color: #fafafa;
+}
+
+
+.programTitle {
+  text-align: center;
+  font-size: 22px;
+  font-weight: 600;
+}
+
+
+.workoutCard {
+  background-color: #ffffff;
+  border-radius: 10px;
+  padding: 16px 18px;
+  border: 1px solid #e5e5e5;
+  margin-top: 4px;
+}
+
+.workoutTitle {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+
+.exerciseList {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.exerciseRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  padding: 10px 12px;
+  border-radius: 6px;
+  background-color: #f9f9f9;
+}
+
+.exerciseName {
+  font-size: 14px;
+}
+
+.exerciseMeta {
+  font-size: 13px;
+  color: #666;
+}

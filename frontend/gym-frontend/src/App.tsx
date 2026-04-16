@@ -6,6 +6,8 @@ import Dashboard from './components/Dashboard'
 import { useAuth } from './contexts/AuthContext'
 import Navbar from './components/Navbar'
 import CreateProgram from './components/CreateProgram'
+import ProgramDetail from './components/ProgramDetail'
+import EditGymProgram from './components/EditGymProgram'
 
 function App() {
   const { isAuth, loading } = useAuth();
@@ -24,6 +26,9 @@ function App() {
         ) : (
           <Route path="/dashboard" element={<Navigate to="/login" />} />
         )}
+
+        <Route path="/program/:id" element={<ProgramDetail/>} />
+        <Route path="/edit-program/:id" element={<EditGymProgram />} />
 
         <Route path='/CreateProgram' element={ isAuth ? <CreateProgram/> : <Navigate to="/login" /> } />
       </Routes>
