@@ -1,0 +1,129 @@
+
+.editProgramWrapper {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 1.5rem;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  background-color: #fff;
+  box-shadow: 10px 10px 20px rgba(0,0,0,0.1);
+}
+
+.editRowTitle {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.editRowTitle .editIcon {
+  font-size: 1.5rem;
+  cursor: pointer;
+}
+
+.editProgramTitle {
+  font-size: 2rem;
+  border-bottom: 2px solid #ddd;
+}
+
+.editIcon {
+  font-size: 1.2rem;
+  cursor: pointer;
+}
+
+.editIcon:hover {
+  color: #65686b;
+}
+
+.editWorkoutCard {
+  background: #fafafa;
+  border: 1px solid #ddd;
+  border-left: 4px solid #444;
+  border-radius: 6px;
+  padding: 1rem;
+  margin-bottom: 1.2rem;
+}
+
+.editRow{
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 15px;
+  position: relative;
+}
+
+.deleteExerciseBtn {
+  color: #c0392b;
+  cursor: pointer;
+}
+
+.editRow .deleteExerciseBtn{
+  position: absolute;
+  right: 0;
+  font-size: 22px;
+}
+
+.editWorkoutTitle {
+  font-size: 1.3rem;
+  margin: 0px
+}
+
+
+.editExerciseList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+}
+
+.editExerciseRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #fff;
+  padding: 0.5rem 0.7rem;
+  border-radius: 4px;
+  border: 1px solid #eee;
+}
+
+.editExerciseName{
+  flex: 1;
+}
+
+.editExerciseRow span:first-child {
+  font-weight: 500;
+}
+
+
+.setRepContainer {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.smallIcon {
+  font-size: 0.9rem;
+  cursor: pointer;
+  color: #333131;
+}
+
+.smallIcon:hover {
+  color: #6c6e72;
+}
+
+
+.editSetRep {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.editSetRep input {
+  width: 45px;
+  padding: 0.25rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  text-align: center;
+  background-color: #f0f0f0;
+}

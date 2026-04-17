@@ -4,7 +4,9 @@ import "./ProgramDetail.css"
 import { FaEdit } from "react-icons/fa"
 import { useAuth } from "../contexts/AuthContext"
 
+//Refaktorera dessa 3 typer senare, anv exakt samma i editgymprog komp
 type ExerciseDetail = {
+  id: number,
   exerciseId: number,
   exerciseName: string,
   set: number,
@@ -72,7 +74,7 @@ const ProgramDetail = () => {
 
             <div className="exerciseList">
               {w.exercises.map(e => (
-                <div className="exerciseRow" key={e.exerciseId}>
+                <div className="exerciseRow" key={e.id}>
                   <span>{e.exerciseName}</span>
                   <span>{e.set} x {e.rep}</span>
                 </div>
