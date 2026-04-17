@@ -20,6 +20,7 @@ namespace GymUmbraco.Controllers
 
         [Authorize]
         [HttpPost]
+        //Denna anvs för att skapa programmet direkt, lägg till mer endpoints längre ner där man kan redigera o lägga till bara en övn / pass etc i taget.
         public async Task<IActionResult> CreateProgram(CreateProgramDto dto)
         {
             var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
@@ -91,6 +92,7 @@ namespace GymUmbraco.Controllers
 
                     exercises = w.WorkoutExercises.Select(e => new
                     {
+                        id = e.Id,
                         exerciseId = e.ExerciseId,
                         exerciseName = e.Exercise.ExerciseName,
                         set = e.Set,
@@ -135,6 +137,128 @@ namespace GymUmbraco.Controllers
 
             workout.WorkoutName = dto.WorkoutName;
             await _context.SaveChangesAsync();
+            return Ok();
+        }
+
+        [Authorize]
+        [HttpPut("exercise/{id}")]
+        public async Task<IActionResult> EditWorkoutExercise(int id, EditWorkoutExerciseDto dto)
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (userIdClaim == null) return Unauthorized("User ID claim saknas");
+            var userId = int.Parse(userIdClaim);
+
+            var workoutExercise = await _context.WorkoutExercises.FirstOrDefaultAsync(we => we.Workout.GymProgram.UserId == userId && we.Id == id);
+            if (workoutExercise == null) return NotFound("Övningen hittades inte");
+            workoutExercise.Set = dto.Set;
+            workoutExercise.Rep = dto.Rep;
+            await _context.SaveChangesAsync();
+            return Ok();
+        }
+
+        [Authorize]
+        [HttpPost("workout/{workoutId}/exercise")]
+        public async Task<IActionResult> AddExerciseToWorkout(int workoutId, AddWorkoutExerciseDto dto)
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (userIdClaim == null) return Unauthorized("User ID claim saknas");
+            var userId = int.Parse(userIdClaim);
+
+            var workout = await _context.Workouts.FirstOrDefaultAsync(w => w.Id == workoutId && w.GymProgram.UserId == userId);
+            if (workout == null) return NotFound("Passet hittades inte");
+
+            var newExercise = new WorkoutExercise
+            {
+                WorkoutId = workoutId,
+                ExerciseId = dto.ExerciseId,
+                Set = dto.Set,
+                Rep = dto.Rep,
+            };
+            await _context.WorkoutExercises.AddAsync(newExercise);
+            await _context.SaveChangesAsync();
+            return Ok();
+        }
+
+        [Authorize]
+        [HttpDelete("exercise/{id}")]
+        public async Task<IActionResult> DeleteExerciseFromWorkout(int id)
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (userIdClaim == null) return Unauthorized("User ID claim saknas");
+            var userId = int.Parse(userIdClaim);
+
+            var workoutExercise = await _context.WorkoutExercises.FirstOrDefaultAsync(we => we.Id == id && we.Workout.GymProgram.UserId == userId);
+            if (workoutExercise == null) return NotFound("Övningen hittades inte");
+
+            _context.WorkoutExercises.Remove(workoutExercise);
+            await _context.SaveChangesAsync();
+            return Ok();
+        }
+
+        [Authorize]
+        [HttpPost("{programId}/workout")]
+        public async Task<IActionResult> AddWorkoutToProgram(int programId, AddWorkoutDto dto)
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (userIdClaim == null) return Unauthorized("User ID claim saknas");
+            var userId = int.Parse(userIdClaim);
+
+            var gymProgram = await _context.GymPrograms.FirstOrDefaultAsync(p => p.Id == programId && p.UserId == userId);
+            if (gymProgram == null) return NotFound("Programmet hittades inte");
+
+            var newWorkout = new Workout
+            {
+                WorkoutName = dto.WorkoutName,
+                GymProgramId = programId
+            };
+            await _context.Workouts.AddAsync(newWorkout);
+            await _context.SaveChangesAsync();
+            return Ok();
+        }
+
+        [Authorize]
+        [HttpDelete("workout/{id}")]
+        public async Task<IActionResult> DeleteWorkout(int id)
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (userIdClaim == null) return Unauthorized("User ID claim saknas");
+            var userId = int.Parse(userIdClaim);
+
+            var workout = await _context.Workouts.Include(w => w.WorkoutExercises).FirstOrDefaultAsync(w => w.Id == id && w.GymProgram.UserId == userId);
+            if (workout == null) return NotFound("Passet hittades inte");
+
+            _context.WorkoutExercises.RemoveRange(workout.WorkoutExercises);
+
+            _context.Workouts.Remove(workout);
+            await _context.SaveChangesAsync();
+            return Ok();
+        }
+
+        [Authorize]
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteProgram(int id)
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (userIdClaim == null) return Unauthorized();
+
+            var userId = int.Parse(userIdClaim);
+
+            var program = await _context.GymPrograms
+                .Include(p => p.Workouts)
+                    .ThenInclude(w => w.WorkoutExercises)
+                .FirstOrDefaultAsync(p => p.Id == id && p.UserId == userId);
+
+            if(program == null) return NotFound("Programmet hittades inte");
+
+   
+            _context.WorkoutExercises.RemoveRange(program.Workouts.SelectMany(w => w.WorkoutExercises));
+
+            _context.Workouts.RemoveRange(program.Workouts);
+
+            _context.GymPrograms.Remove(program);
+
+            await _context.SaveChangesAsync();
+
             return Ok();
         }
 
