@@ -2,7 +2,7 @@ import { useNavigate, useParams } from "react-router-dom"
 import { useAuth } from "../contexts/AuthContext"
 import { useEffect, useState } from "react"
 import { FaEdit } from "react-icons/fa"
-import { FiEdit2, FiX, FiEdit } from "react-icons/fi"
+import { FiX, FiEdit, FiTrash2 } from "react-icons/fi"
 import "./EditGymProgram.css"
 
 //Refaktorera dessa 3 typer senare, anv exakt samma i ProgramDetail komp
@@ -26,6 +26,7 @@ type GymProgramDetail = {
   workouts: Workout[]
 }
 
+
 const EditGymProgram = () => {
 
   const { logout } = useAuth();
@@ -33,6 +34,10 @@ const EditGymProgram = () => {
   const { id } = useParams<{ id: string}>()
 
   const [gymProgram, setGymProgram] = useState<GymProgramDetail | null>(null);
+
+  //ändra namn states
+  const [isEditingName, setIsEditingName] = useState(false)
+  const [newName, setNewName] = useState("")
 
   useEffect(() => {
       const fetchGymProgramDetail = async () => {
@@ -59,13 +64,43 @@ const EditGymProgram = () => {
     }, [id, logout, navigate])
 
     if(!gymProgram) return <p>Loading...</p>
+
+    const handleEditProgramName = async () => {
+      const res = await fetch(`https://localhost:44388/api/GymProgram/program/${gymProgram.id}`, {
+        method: "PUT",
+        headers: {"Content-Type" : "application/json", Authorization: `Bearer ${localStorage.getItem("token")}`},
+        body: JSON.stringify({gymProgramName: newName})
+      })
+      if(res.ok){
+        setGymProgram(prev => prev ? {...prev, programName: newName} : prev);
+        setIsEditingName(false);
+      }
+    }
+
   return (
     <>
       <h1>Redigera gymprogram</h1>
       <div className="editProgramWrapper">
+        <div className="removeProgRow">
+          <p>Ta bort program</p>
+          <FiTrash2 className="trashIcon"/>
+        </div>
         <div className="editRowTitle">
-          <h2 className="editProgramTitle">{gymProgram.programName}</h2>
-          <FaEdit className="editIcon"/>
+          {isEditingName ? (
+          <>
+            <input value={newName} onChange={(e) => setNewName(e.target.value)} placeholder="Ändra namn på program"/>
+            <button onClick={() => 
+              {setIsEditingName(false); 
+              setNewName(gymProgram.programName); }}>Ångra</button>
+
+            <button onClick={handleEditProgramName}>Spara ändringar</button>
+          </>
+        ) : (
+          <>
+            <h2 className="editProgramTitle">{gymProgram.programName}</h2>
+            <FaEdit onClick={() => {setIsEditingName(true); setNewName(gymProgram.programName)}} className="editIcon" />
+          </>
+        )}
         </div>
           {gymProgram.workouts.map(w => (
             <div className="editWorkoutCard" key={w.id}>
@@ -92,7 +127,7 @@ const EditGymProgram = () => {
                     <FiX className="deleteExerciseBtn" />
                   </div>
                 ))}
-                <button>+ Lägg till övning</button>
+                <button className="editAddBtn">+ Lägg till övning</button>
               </div>
             </div>
           ))}

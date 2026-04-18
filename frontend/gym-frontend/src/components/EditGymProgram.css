@@ -9,6 +9,27 @@
   box-shadow: 10px 10px 20px rgba(0,0,0,0.1);
 }
 
+.removeProgRow{
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  justify-content: end;
+}
+
+.removeProgRow p{
+  font-weight: bold;
+  margin: 0;
+}
+
+.trashIcon{
+  font-size: 24px;
+  cursor: pointer;
+}
+
+.trashIcon:hover{
+  color: #c0392b;
+}
+
 .editRowTitle {
   display: flex;
   align-items: center;
@@ -126,4 +147,17 @@
   border-radius: 4px;
   text-align: center;
   background-color: #f0f0f0;
+}
+
+.editAddBtn{
+  border: none;
+  background-color: #2c2c2c;
+  color: whitesmoke;
+  padding: 10px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.editAddBtn:hover{
+  background-color: #2c2c2c94;
 }
