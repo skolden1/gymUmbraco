@@ -9,6 +9,65 @@
   box-shadow: 10px 10px 20px rgba(0,0,0,0.1);
 }
 
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.35);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modalContainer {
+  background-color: #fff;
+  border: 1px solid rgb(119, 117, 117);
+  padding: 20px;
+  border-radius: 8px;
+  min-width: 300px;
+  max-width: 80%;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+  margin: auto;
+}
+
+.modalContainer p{
+  text-align: center;
+  font-weight: bold;
+}
+
+.editBtnRowGrp{
+  display: flex;
+  justify-content: center;
+  margin-top: 10px;
+  gap: 15px;
+}
+
+.editRemoveBtn{
+  background-color: #c0392b;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.editCancelBtn{
+  background-color: #2b6cc0;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.editRemoveBtn:hover{
+  background-color: #c03a2ba9;
+}
+
+.editCancelBtn:hover{
+  background-color: #2b6cc0c2;
+}
+
 .removeProgRow{
   display: flex;
   align-items: center;

@@ -26,6 +26,17 @@ type GymProgramDetail = {
   workouts: Workout[]
 }
 
+//för modal 
+type ConfirmDeleteState = {
+  type: "program" | "workout"
+  id?: number
+}
+
+//Refaktorera denna + fetchen senare (skapa en komponent som visar alla övn i en lista ist, då vi har den i createprog och denna komp just nu...)
+type Exercise = {
+  id: number,
+  exerciseName: string
+}
 
 const EditGymProgram = () => {
 
@@ -35,9 +46,18 @@ const EditGymProgram = () => {
 
   const [gymProgram, setGymProgram] = useState<GymProgramDetail | null>(null);
 
+  //globala övningslistan
+  const [allExercises, setAllExercises] = useState<Exercise[]>([]);
+
   //ändra namn states
   const [isEditingName, setIsEditingName] = useState(false)
   const [newName, setNewName] = useState("")
+
+  //modal / confirm ruta
+  const [confirmDelete, setConfirmDelete] = useState<ConfirmDeleteState | null>(null);
+
+  //L'ägga till övn toggle
+  const [activeWorkoutId, setActiveWorkoutId] = useState<number | null>(null);
 
   useEffect(() => {
       const fetchGymProgramDetail = async () => {
@@ -63,7 +83,22 @@ const EditGymProgram = () => {
       fetchGymProgramDetail()
     }, [id, logout, navigate])
 
-    if(!gymProgram) return <p>Loading...</p>
+  useEffect(() => {
+    const fetchExerciseList = async () => {
+      const res = await fetch(`https://localhost:44388/api/GymProgram/exercises`, {
+        method: "GET",
+        headers: {"Content-Type" : "application/json"}
+      });
+
+      if(!res.ok) return alert("Kunde inte hämta listan med övningar");
+
+      const data: Exercise[] = await res.json();
+      setAllExercises(data);
+    }
+    fetchExerciseList();
+  }, [])
+
+  if(!gymProgram) return <p>Loading...</p>
 
     const handleEditProgramName = async () => {
       const res = await fetch(`https://localhost:44388/api/GymProgram/program/${gymProgram.id}`, {
@@ -77,14 +112,92 @@ const EditGymProgram = () => {
       }
     }
 
+    const handleDeleteProgram = async () => {
+      const res = await fetch(`https://localhost:44388/api/GymProgram/${gymProgram.id}`, {
+        method: "DELETE",
+        headers: {"Content-Type" : "application/json", Authorization: `Bearer ${localStorage.getItem("token")}`}
+    })
+    if(!res.ok) return alert("Något gick fel vid försök av att ta bort program");
+      
+    alert("Programmet togs bort")
+    navigate("/dashboard")
+  }
+
+
+  const handleDeleteWorkout = async (workoutId: number) => {
+    const res = await fetch(`https://localhost:44388/api/GymProgram/workout/${workoutId}`, {
+      method: "DELETE",
+      headers: {"Content-Type" : "application/json", Authorization: `Bearer ${localStorage.getItem("token")}`}
+    })
+
+    if(!res.ok) return alert("Något gick fel vid försök av att ta bort pass");
+
+    setGymProgram(prev => prev ? {...prev, workouts: prev.workouts.filter(w => w.id !== workoutId)}: prev)
+    alert("Passet togs bort")
+  }
+
+  const handleDeleteExercise = async (workoutExeId: number) => {
+    const res = await fetch(`https://localhost:44388/api/GymProgram/exercise/${workoutExeId}`, {
+      method: "DELETE",
+      headers: {"Content-Type" : "application/json", Authorization: `Bearer ${localStorage.getItem("token")}`}
+    })
+
+    if(!res.ok) return alert("Något gick fel vid försök av att ta bort övning");
+    setGymProgram(prev => prev ? {...prev, workouts: prev.workouts.map(w => ({
+      ...w,
+      exercises: w.exercises.filter(e => e.id !== workoutExeId)
+    }))}: prev);
+  }
+
+  const handleAddExercise = async (formData: FormData, workoutId: number) => {
+
+    const exerciseId = formData.get("exerciseId");
+    const reps = formData.get("reps");
+    const sets = formData.get("sets");
+
+    const res = await fetch(`https://localhost:44388/api/GymProgram/workout/${workoutId}/exercise`, {
+      method: "POST",
+      headers: {"Content-Type" : "application/json", Authorization: `Bearer ${localStorage.getItem("token")}`},
+      body: JSON.stringify({exerciseId, reps, sets})
+    })
+
+    if(!res.ok) return alert("Det gick inte att lägga till övning");
+    alert("Övningen lades till!");
+  }
+
+
+
   return (
     <>
       <h1>Redigera gymprogram</h1>
       <div className="editProgramWrapper">
         <div className="removeProgRow">
           <p>Ta bort program</p>
-          <FiTrash2 className="trashIcon"/>
+          <FiTrash2 onClick={() => setConfirmDelete({type: "program"})} className="trashIcon"/>
         </div>
+        {confirmDelete && 
+            <>
+              <div className="modalOverlay">
+                <div className="modalContainer">
+                  <p>
+                    {confirmDelete.type === "program" 
+                      ? "Vill du verkligen ta bort programmet?" 
+                      : "Vill du verkligen ta bort passet?"}
+                  </p>
+                  <div className="editBtnRowGrp">
+                    <button onClick={() => {
+                      if (confirmDelete.type === "program") {
+                        handleDeleteProgram()
+                      } else if (confirmDelete.type === "workout" && confirmDelete.id) {
+                        handleDeleteWorkout(confirmDelete.id)
+                      }
+                      setConfirmDelete(null)}} className="editRemoveBtn">Ta bort</button>
+                    <button className="editCancelBtn" onClick={() => setConfirmDelete(null)}>Avbryt</button>
+                  </div>
+                </div>
+              </div>
+            </>
+            }
         <div className="editRowTitle">
           {isEditingName ? (
           <>
@@ -107,7 +220,8 @@ const EditGymProgram = () => {
               <div className="editRow">
                 <h4 className="editWorkoutTitle">{w.workoutName}</h4>
                 <FaEdit className="editIcon"/>
-                <FiX className="deleteExerciseBtn" />
+                <FiX onClick={() => setConfirmDelete({type: "workout", id: w.id})} className="deleteExerciseBtn" />
+                  
               </div>
               <div className="editExerciseList">
                 {w.exercises.map(e => (
@@ -124,10 +238,25 @@ const EditGymProgram = () => {
                       <FiEdit className="smallIcon" />
                       
                     </div>
-                    <FiX className="deleteExerciseBtn" />
+                    <FiX onClick={() => handleDeleteExercise(e.id)} className="deleteExerciseBtn" />
                   </div>
                 ))}
-                <button className="editAddBtn">+ Lägg till övning</button>
+                <button onClick={() => setActiveWorkoutId(w.id)} className="editAddBtn">+ Lägg till övning</button>
+                { activeWorkoutId === w.id && <div>
+                        <form action={(formData) => handleAddExercise(formData, w.id)}>
+                          <select required name="exerciseId">
+                            <option value={""}>--Välj en övning--</option>
+                            {allExercises.map(e => (
+                              <option key={e.id} value={e.id}>{e.exerciseName}</option>
+                            ))}
+                          </select>
+                          <label htmlFor="reps">Skriv in antal repetitioner</label>
+                          <input type="number" name="reps" required placeholder="tex 3 reps" id="reps"/>
+                          <label htmlFor="sets" id="sets">Skriv in antal sets</label>
+                          <input type="nuner" name="sets" required placeholder="tex 3 set" id="sets"/>
+                          <button type="submit">Spara</button>
+                        </form>
+                  </div>}
               </div>
             </div>
           ))}
