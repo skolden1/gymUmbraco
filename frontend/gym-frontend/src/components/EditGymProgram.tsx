@@ -38,6 +38,21 @@ type Exercise = {
   exerciseName: string
 }
 
+//från endpointen när man lägger till övning i pass
+type NewExerciseResponse = {
+  id: number,
+  exerciseId: number,
+  set: number,
+  rep: number
+}
+
+//editworkoutExer endpoint 
+type UpdatedWorkoutExercise = {
+  id: number,
+  set: number,
+  rep: number
+}
+
 const EditGymProgram = () => {
 
   const { logout } = useAuth();
@@ -152,20 +167,58 @@ const EditGymProgram = () => {
   const handleAddExercise = async (formData: FormData, workoutId: number) => {
 
     const exerciseId = formData.get("exerciseId");
-    const reps = formData.get("reps");
-    const sets = formData.get("sets");
+    const rep = formData.get("reps");
+    const set = formData.get("sets");
 
     const res = await fetch(`https://localhost:44388/api/GymProgram/workout/${workoutId}/exercise`, {
       method: "POST",
       headers: {"Content-Type" : "application/json", Authorization: `Bearer ${localStorage.getItem("token")}`},
-      body: JSON.stringify({exerciseId, reps, sets})
+      body: JSON.stringify({workoutId, exerciseId, rep, set})
     })
 
     if(!res.ok) return alert("Det gick inte att lägga till övning");
+    const data: NewExerciseResponse = await res.json();
+    
+    const foundExercise = allExercises.find(e => e.id === data.exerciseId);
+
+    const newExercise: ExerciseDetail = {
+      id: data.id,
+      exerciseId: data.exerciseId,
+      exerciseName: foundExercise?.exerciseName || "Okänd övning",
+      set: data.set,
+      rep: data.rep
+  };
+
+  setGymProgram(prev => {
+    if (!prev) return prev;
+
+    return {
+      ...prev,
+      workouts: prev.workouts.map(w =>
+        w.id === workoutId
+          ? {
+              ...w,
+              exercises: [...w.exercises, newExercise]
+            }
+          : w
+      )
+    };
+  });
+
     alert("Övningen lades till!");
   }
 
+  const handleEditSetNRep = async (workoutExerciseId: number, update: {set?: number, rep?:number}) => {
+    const res = await fetch(`https://localhost:44388/api/GymProgram/exercise/${workoutExerciseId}`, {
+      method: "PUT",
+      headers: {"Content-Type" : "application/json", Authorization: `Bearer ${localStorage.getItem("token")}`},
+      body: JSON.stringify(update)
+    })
 
+    if(!res.ok) return alert("Kunde inte uppdatera")
+    
+    const data: UpdatedWorkoutExercise = await res.json();
+  }
 
   return (
     <>
@@ -242,7 +295,7 @@ const EditGymProgram = () => {
                   </div>
                 ))}
                 <button onClick={() => setActiveWorkoutId(w.id)} className="editAddBtn">+ Lägg till övning</button>
-                { activeWorkoutId === w.id && <div>
+                { activeWorkoutId === w.id && <div className="addExerciseFormWrapper">
                         <form action={(formData) => handleAddExercise(formData, w.id)}>
                           <select required name="exerciseId">
                             <option value={""}>--Välj en övning--</option>
@@ -254,7 +307,10 @@ const EditGymProgram = () => {
                           <input type="number" name="reps" required placeholder="tex 3 reps" id="reps"/>
                           <label htmlFor="sets" id="sets">Skriv in antal sets</label>
                           <input type="nuner" name="sets" required placeholder="tex 3 set" id="sets"/>
-                          <button type="submit">Spara</button>
+                          <div className="editFormRow">
+                            <button className="editFormSaveBtn" type="submit">Spara</button>
+                            <button className="editFormCancelBtn" onClick={() => setActiveWorkoutId(null)}>Avbryt</button>
+                          </div>
                         </form>
                   </div>}
               </div>
