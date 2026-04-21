@@ -150,10 +150,18 @@ namespace GymUmbraco.Controllers
 
             var workoutExercise = await _context.WorkoutExercises.FirstOrDefaultAsync(we => we.Workout.GymProgram.UserId == userId && we.Id == id);
             if (workoutExercise == null) return NotFound("Övningen hittades inte");
-            workoutExercise.Set = dto.Set;
-            workoutExercise.Rep = dto.Rep;
+
+            if (dto.Set.HasValue)
+            {
+                workoutExercise.Set = dto.Set.Value;
+            }
+            if (dto.Rep.HasValue)
+            {
+                workoutExercise.Rep = dto.Rep.Value;
+            }
+
             await _context.SaveChangesAsync();
-            return Ok();
+            return Ok(new {id = workoutExercise.Id, set = workoutExercise.Set, rep = workoutExercise.Rep});
         }
 
         [Authorize]
@@ -176,7 +184,13 @@ namespace GymUmbraco.Controllers
             };
             await _context.WorkoutExercises.AddAsync(newExercise);
             await _context.SaveChangesAsync();
-            return Ok();
+            return Ok(new 
+            {
+                id = newExercise.Id,
+                exerciseId = newExercise.ExerciseId,
+                set = newExercise.Set,
+                rep = newExercise.Rep
+            });
         }
 
         [Authorize]
