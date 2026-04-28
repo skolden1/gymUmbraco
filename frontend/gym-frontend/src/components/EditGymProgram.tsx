@@ -74,6 +74,9 @@ const EditGymProgram = () => {
   //L'ägga till övn toggle
   const [activeWorkoutId, setActiveWorkoutId] = useState<number | null>(null);
 
+  //Lägga till så man kan edita sets n reps state
+  const [toggleEditSetRepId, setToggleEditSetRepId] = useState<number | null>(null);
+
   useEffect(() => {
       const fetchGymProgramDetail = async () => {
         const res = await fetch(`https://localhost:44388/api/GymProgram/${id}`, {
@@ -206,18 +209,35 @@ const EditGymProgram = () => {
   });
 
     alert("Övningen lades till!");
+    setActiveWorkoutId(null);
   }
 
-  const handleEditSetNRep = async (workoutExerciseId: number, update: {set?: number, rep?:number}) => {
+  const handleEditSetNRep = async (formData: FormData) => {
+    const workoutExerciseId = Number(formData.get("workoutExerciseId"));
+    const set = formData.get("editSet");
+    const rep = formData.get("editRep")
     const res = await fetch(`https://localhost:44388/api/GymProgram/exercise/${workoutExerciseId}`, {
       method: "PUT",
       headers: {"Content-Type" : "application/json", Authorization: `Bearer ${localStorage.getItem("token")}`},
-      body: JSON.stringify(update)
+      body: JSON.stringify({set: set ? Number(set) : undefined, rep: rep ? Number(rep) : undefined})
     })
 
     if(!res.ok) return alert("Kunde inte uppdatera")
     
     const data: UpdatedWorkoutExercise = await res.json();
+
+    setGymProgram(prev => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        workouts: prev?.workouts.map(w => ({
+          ...w,
+          exercises: w.exercises.map(e => e.id === workoutExerciseId ? {...e, set: data.set, rep: data.rep} : e)
+        }))
+      }
+    })
+    setToggleEditSetRepId(null);
+    return alert("Uppdateringen lyckades");
   }
 
   return (
@@ -278,17 +298,28 @@ const EditGymProgram = () => {
               </div>
               <div className="editExerciseList">
                 {w.exercises.map(e => (
-                  <div className="editExerciseRow" key={e.id}>
+                  <div className={`editExerciseRow ${toggleEditSetRepId === e.id ? "activeRow" : ""}`} key={e.id}>
                     
                     <span className="editExerciseName">{e.exerciseName}</span>
                     <div className="setRepContainer">
                       <span>{e.set} set</span>
-                      <FiEdit className="smallIcon" />
 
                       <span>x</span>
 
                       <span>{e.rep} reps</span>
-                      <FiEdit className="smallIcon" />
+                      <FiEdit onClick={() => setToggleEditSetRepId(e.id)} className="smallIcon" />
+                        { toggleEditSetRepId === e.id && 
+                          <form className="editRepSetForm" action={handleEditSetNRep}>
+                            <h4 className="editFormTitle">{e.exerciseName}</h4>
+                            <input type="hidden" name="workoutExerciseId" value={e.id} />
+                            <FiX onClick={() => setToggleEditSetRepId(null)} className="editSetNRepIcon" />
+                            <label htmlFor="editSet">Ändra set</label>
+                            <input type="number" placeholder={`${e.set} set`} id="editSet" name="editSet" defaultValue={e.set}/>
+                            <label htmlFor="editRep">Ändra reps</label>
+                            <input type="number" placeholder={`${e.rep} rep`} id="editRep" name="editRep" defaultValue={e.rep}/>
+                            <button type="submit">Spara</button>
+                          </form>
+                        }
                       
                     </div>
                     <FiX onClick={() => handleDeleteExercise(e.id)} className="deleteExerciseBtn" />
@@ -306,7 +337,7 @@ const EditGymProgram = () => {
                           <label htmlFor="reps">Skriv in antal repetitioner</label>
                           <input type="number" name="reps" required placeholder="tex 3 reps" id="reps"/>
                           <label htmlFor="sets" id="sets">Skriv in antal sets</label>
-                          <input type="nuner" name="sets" required placeholder="tex 3 set" id="sets"/>
+                          <input type="number" name="sets" required placeholder="tex 3 set" id="sets"/>
                           <div className="editFormRow">
                             <button className="editFormSaveBtn" type="submit">Spara</button>
                             <button className="editFormCancelBtn" onClick={() => setActiveWorkoutId(null)}>Avbryt</button>

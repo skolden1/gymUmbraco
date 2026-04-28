@@ -124,6 +124,7 @@
   margin-bottom: 1.2rem;
 }
 
+
 .editRow{
   display: flex;
   align-items: center;
@@ -180,6 +181,70 @@
   justify-content: center;
   align-items: center;
   gap: 0.3rem;
+  position: relative;
+}
+
+.editRepSetForm{
+  border: 1px solid #ddd;
+  background-color: #f7f8fa;
+  position: absolute;
+  min-width: 350px;
+  display: flex;
+  flex-direction: column;
+  padding: 12px;
+  border-radius: 5px;
+  right: 50px;
+  z-index: 10;
+  top: 0px;
+  box-shadow: 0 12px 30px rgba(0,0,0,0.15);
+}
+
+.activeRow {
+  border: 1px solid #2b6cc0;
+  background-color: #f0f6ff;
+}
+
+.editFormTitle {
+  margin: 0 0 8px 0;
+  font-size: 16px;
+  font-weight: bold;
+}
+
+.editRepSetForm input {
+  padding: 6px;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+  margin-bottom: 5px;
+}
+
+.editSetNRepIcon{
+  position: absolute;
+  right: 10px;
+  font-size: 20px;
+  cursor: pointer;
+}
+
+.editSetNRepIcon:hover{
+  color: #2c2c2c71;
+}
+
+.editRepSetForm label{
+  margin: 5px 0px;
+  font-weight: bold;
+  font-size: 14px;
+}
+
+.editRepSetForm button{
+  cursor: pointer;
+  margin-top: 15px;
+  background-color: rgb(109, 163, 243);
+  border: none;
+  padding: 5px;
+  color: whitesmoke;
+}
+
+.editRepSetForm button:hover{
+  background-color: rgba(109, 163, 243, 0.753);
 }
 
 .smallIcon {
