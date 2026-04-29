@@ -133,6 +133,24 @@
   position: relative;
 }
 
+.editRow input,
+.editRowTitle input
+{
+  padding: 10px 14px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  font-size: 14px;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.editRow input:focus,
+.editRowTitle input:focus
+{
+  border-color: #4f46e5; 
+  box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.2);
+}
+
 .deleteExerciseBtn {
   color: #c0392b;
   cursor: pointer;

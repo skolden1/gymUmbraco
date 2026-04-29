@@ -77,6 +77,10 @@ const EditGymProgram = () => {
   //Lägga till så man kan edita sets n reps state
   const [toggleEditSetRepId, setToggleEditSetRepId] = useState<number | null>(null);
 
+  //State för att edita workout namn
+  const [toggleEditWorkoutNameId, setToggleEditWorkoutNameId] = useState<number | null>(null);
+  const [editWorkoutNameValue, setEditWorkoutNameValue] = useState<string>("");
+
   useEffect(() => {
       const fetchGymProgramDetail = async () => {
         const res = await fetch(`https://localhost:44388/api/GymProgram/${id}`, {
@@ -240,6 +244,32 @@ const EditGymProgram = () => {
     return alert("Uppdateringen lyckades");
   }
 
+  const editWorkoutName = async (id: number) => {
+    const workoutName = editWorkoutNameValue
+    const res = await fetch(`https://localhost:44388/api/GymProgram/workout/${id}`, {
+      method: "PUT",
+      headers: {"Content-Type" : "application/json", Authorization: `Bearer ${localStorage.getItem("token")}`},
+      body: JSON.stringify({workoutName})
+    })
+    
+    if(!res.ok) return alert("Det gick inte att uppdatera namnet")
+    
+    setGymProgram(prev => {
+      if (!prev) return prev;
+
+      return{
+        ...prev,
+        workouts: prev?.workouts.map(w => 
+          w.id === id ? {...w, workoutName: editWorkoutNameValue} : w
+        )
+      }
+    })
+
+    alert("Namnet uppdaterades");
+    setToggleEditWorkoutNameId(null);
+    setEditWorkoutNameValue("");
+  }
+
   return (
     <>
       <h1>Redigera gymprogram</h1>
@@ -275,11 +305,11 @@ const EditGymProgram = () => {
           {isEditingName ? (
           <>
             <input value={newName} onChange={(e) => setNewName(e.target.value)} placeholder="Ändra namn på program"/>
-            <button onClick={() => 
+            <button className="editRemoveBtn" onClick={() => 
               {setIsEditingName(false); 
               setNewName(gymProgram.programName); }}>Ångra</button>
 
-            <button onClick={handleEditProgramName}>Spara ändringar</button>
+            <button className="editCancelBtn" onClick={handleEditProgramName}>Spara ändringar</button>
           </>
         ) : (
           <>
@@ -291,10 +321,20 @@ const EditGymProgram = () => {
           {gymProgram.workouts.map(w => (
             <div className="editWorkoutCard" key={w.id}>
               <div className="editRow">
-                <h4 className="editWorkoutTitle">{w.workoutName}</h4>
-                <FaEdit className="editIcon"/>
-                <FiX onClick={() => setConfirmDelete({type: "workout", id: w.id})} className="deleteExerciseBtn" />
-                  
+                {toggleEditWorkoutNameId === w.id ? (
+                  <>
+                    <input value={editWorkoutNameValue} onChange={(e) => setEditWorkoutNameValue(e.target.value) } /> 
+                    <button className="editRemoveBtn" onClick={() => setToggleEditWorkoutNameId(null)}>Ångra</button>
+                    <button className="editCancelBtn" onClick={() => editWorkoutName(w.id)}>Spara namn</button>
+                  </>
+                  ) :( 
+                  <>
+                    <h4 className="editWorkoutTitle">{w.workoutName}</h4>
+                    <FaEdit onClick={() => {setToggleEditWorkoutNameId(w.id); setEditWorkoutNameValue(w.workoutName)}} className="editIcon"/>
+                    <FiX onClick={() => setConfirmDelete({type: "workout", id: w.id})} className="deleteExerciseBtn" />
+                  </>
+                )}
+
               </div>
               <div className="editExerciseList">
                 {w.exercises.map(e => (
