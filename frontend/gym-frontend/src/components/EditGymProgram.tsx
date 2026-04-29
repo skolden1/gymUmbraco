@@ -4,27 +4,14 @@ import { useEffect, useState } from "react"
 import { FaEdit } from "react-icons/fa"
 import { FiX, FiEdit, FiTrash2 } from "react-icons/fi"
 import "./EditGymProgram.css"
-
-//Refaktorera dessa 3 typer senare, anv exakt samma i ProgramDetail komp
-type ExerciseDetail = {
-  id: number,
-  exerciseId: number,
-  exerciseName: string,
-  set: number,
-  rep: number
-}
-
-type Workout = {
-  id: number,
-  workoutName: string,
-  exercises: ExerciseDetail[]
-}
-
-type GymProgramDetail = {
-  id: number,
-  programName: string,
-  workouts: Workout[]
-}
+import { getExercises, getGymProgramDetail } from "../services/gymProgramService"
+import type {
+  GymProgramDetail,
+  Exercise,
+  ExerciseDetail,
+  NewExerciseResponse,
+  UpdatedWorkoutExercise
+} from "../types/gymProgramTypes";
 
 //för modal 
 type ConfirmDeleteState = {
@@ -32,26 +19,6 @@ type ConfirmDeleteState = {
   id?: number
 }
 
-//Refaktorera denna + fetchen senare (skapa en komponent som visar alla övn i en lista ist, då vi har den i createprog och denna komp just nu...)
-type Exercise = {
-  id: number,
-  exerciseName: string
-}
-
-//från endpointen när man lägger till övning i pass
-type NewExerciseResponse = {
-  id: number,
-  exerciseId: number,
-  set: number,
-  rep: number
-}
-
-//editworkoutExer endpoint 
-type UpdatedWorkoutExercise = {
-  id: number,
-  set: number,
-  rep: number
-}
 
 const EditGymProgram = () => {
 
@@ -83,39 +50,34 @@ const EditGymProgram = () => {
 
   useEffect(() => {
       const fetchGymProgramDetail = async () => {
-        const res = await fetch(`https://localhost:44388/api/GymProgram/${id}`, {
-          method: "GET",
-          headers: {"Content-Type" : "application/json", Authorization: `Bearer ${localStorage.getItem("token")}`}
-        })
-  
-        if(!res.ok){
-          //om token rinner ut så navigeras man till login
-          if(res.status === 401){
+        try {
+          //Refaktorera typer senare, GymDetail ska anv på data här
+          const data = await getGymProgramDetail(Number(id));
+          setGymProgram(data);
+        } catch (error) {
+          const err = error as Error;
+
+          if (err.message === "UNAUTHORIZED") {
             logout();
             navigate("/login");
+          } else {
+            console.log(err.message);
           }
-          const text = await res.text();
-          console.log("Error", text);
-          return
         }
-        const data: GymProgramDetail = await res.json()
-        console.log(data)
-        setGymProgram(data)
+  
       }
       fetchGymProgramDetail()
     }, [id, logout, navigate])
 
   useEffect(() => {
     const fetchExerciseList = async () => {
-      const res = await fetch(`https://localhost:44388/api/GymProgram/exercises`, {
-        method: "GET",
-        headers: {"Content-Type" : "application/json"}
-      });
-
-      if(!res.ok) return alert("Kunde inte hämta listan med övningar");
-
-      const data: Exercise[] = await res.json();
-      setAllExercises(data);
+      try {
+        //Refaktorera typer senare, exercise ska anv på data här
+        const data = await getExercises();
+        setAllExercises(data);
+      } catch (error) {
+        alert((error as Error).message)
+      }
     }
     fetchExerciseList();
   }, [])
