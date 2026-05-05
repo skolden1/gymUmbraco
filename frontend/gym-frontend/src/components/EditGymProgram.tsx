@@ -4,7 +4,7 @@ import { useEffect, useState } from "react"
 import { FaEdit } from "react-icons/fa"
 import { FiX, FiEdit, FiTrash2 } from "react-icons/fi"
 import "./EditGymProgram.css"
-import { getExercises, getGymProgramDetail } from "../services/gymProgramService"
+import { deleteProgram, editProgramName, getExercises, getGymProgramDetail } from "../services/gymProgramService"
 import type {
   GymProgramDetail,
   Exercise,
@@ -72,7 +72,6 @@ const EditGymProgram = () => {
   useEffect(() => {
     const fetchExerciseList = async () => {
       try {
-        //Refaktorera typer senare, exercise ska anv på data här
         const data = await getExercises();
         setAllExercises(data);
       } catch (error) {
@@ -85,26 +84,26 @@ const EditGymProgram = () => {
   if(!gymProgram) return <p>Loading...</p>
 
     const handleEditProgramName = async () => {
-      const res = await fetch(`https://localhost:44388/api/GymProgram/program/${gymProgram.id}`, {
-        method: "PUT",
-        headers: {"Content-Type" : "application/json", Authorization: `Bearer ${localStorage.getItem("token")}`},
-        body: JSON.stringify({gymProgramName: newName})
-      })
-      if(res.ok){
-        setGymProgram(prev => prev ? {...prev, programName: newName} : prev);
+      if(!gymProgram) return;
+      try {
+        await editProgramName(gymProgram.id, newName);
+        setGymProgram(prev => prev ? {...prev, programName: newName}: prev);
         setIsEditingName(false);
+        alert("Namnet uppdaterades!")
+      } catch (error) {
+        alert((error as Error).message)
       }
     }
 
     const handleDeleteProgram = async () => {
-      const res = await fetch(`https://localhost:44388/api/GymProgram/${gymProgram.id}`, {
-        method: "DELETE",
-        headers: {"Content-Type" : "application/json", Authorization: `Bearer ${localStorage.getItem("token")}`}
-    })
-    if(!res.ok) return alert("Något gick fel vid försök av att ta bort program");
-      
-    alert("Programmet togs bort")
-    navigate("/dashboard")
+    if(!gymProgram) return
+    try {
+      await deleteProgram(gymProgram.id);
+      alert("Programmet togs bort");
+      navigate("/dashboard");
+    } catch (error) {
+      alert((error as Error).message)
+    }
   }
 
 
