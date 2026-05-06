@@ -4,13 +4,15 @@ import { useEffect, useState } from "react"
 import { FaEdit } from "react-icons/fa"
 import { FiX, FiEdit, FiTrash2 } from "react-icons/fi"
 import "./EditGymProgram.css"
-import { deleteProgram, editProgramName, getExercises, getGymProgramDetail } from "../services/gymProgramService"
+import { addExercise, deleteExercise, deleteProgram, deleteWorkout, editProgramName, editSetNRep, getExercises, getGymProgramDetail } from "../services/gymProgramService"
 import type {
   GymProgramDetail,
   Exercise,
   ExerciseDetail,
   NewExerciseResponse,
-  UpdatedWorkoutExercise
+  UpdatedWorkoutExercise,
+  AddWorkoutExerciseDto,
+  UpdateWorkoutExerciseDto
 } from "../types/gymProgramTypes";
 
 //för modal 
@@ -108,101 +110,82 @@ const EditGymProgram = () => {
 
 
   const handleDeleteWorkout = async (workoutId: number) => {
-    const res = await fetch(`https://localhost:44388/api/GymProgram/workout/${workoutId}`, {
-      method: "DELETE",
-      headers: {"Content-Type" : "application/json", Authorization: `Bearer ${localStorage.getItem("token")}`}
-    })
-
-    if(!res.ok) return alert("Något gick fel vid försök av att ta bort pass");
-
-    setGymProgram(prev => prev ? {...prev, workouts: prev.workouts.filter(w => w.id !== workoutId)}: prev)
-    alert("Passet togs bort")
+    try {
+      await deleteWorkout(workoutId);
+      setGymProgram(prev => {
+        if(!prev) return prev;
+        return {...prev, workouts: prev.workouts.filter(w => w.id !== workoutId)}
+      })
+      alert("Passet togs bort!");
+    } catch (error) {
+      alert((error as Error).message)
+    }
   }
 
   const handleDeleteExercise = async (workoutExeId: number) => {
-    const res = await fetch(`https://localhost:44388/api/GymProgram/exercise/${workoutExeId}`, {
-      method: "DELETE",
-      headers: {"Content-Type" : "application/json", Authorization: `Bearer ${localStorage.getItem("token")}`}
-    })
-
-    if(!res.ok) return alert("Något gick fel vid försök av att ta bort övning");
-    setGymProgram(prev => prev ? {...prev, workouts: prev.workouts.map(w => ({
-      ...w,
-      exercises: w.exercises.filter(e => e.id !== workoutExeId)
-    }))}: prev);
+    try {
+      await deleteExercise(workoutExeId);
+      setGymProgram(prev => {
+        if(!prev) return prev;
+        return {...prev, workouts: prev.workouts.map(w => {
+          return {...w, exercises: w.exercises.filter(e => e.id !== workoutExeId)}
+        })}
+      })
+      alert("Övningen togs bort")
+    } catch (error) {
+      alert((error as Error).message)
+    }
   }
 
   const handleAddExercise = async (formData: FormData, workoutId: number) => {
-
-    const exerciseId = formData.get("exerciseId");
-    const rep = formData.get("reps");
-    const set = formData.get("sets");
-
-    const res = await fetch(`https://localhost:44388/api/GymProgram/workout/${workoutId}/exercise`, {
-      method: "POST",
-      headers: {"Content-Type" : "application/json", Authorization: `Bearer ${localStorage.getItem("token")}`},
-      body: JSON.stringify({workoutId, exerciseId, rep, set})
-    })
-
-    if(!res.ok) return alert("Det gick inte att lägga till övning");
-    const data: NewExerciseResponse = await res.json();
-    
-    const foundExercise = allExercises.find(e => e.id === data.exerciseId);
-
-    const newExercise: ExerciseDetail = {
-      id: data.id,
-      exerciseId: data.exerciseId,
-      exerciseName: foundExercise?.exerciseName || "Okänd övning",
-      set: data.set,
-      rep: data.rep
-  };
-
-  setGymProgram(prev => {
-    if (!prev) return prev;
-
-    return {
-      ...prev,
-      workouts: prev.workouts.map(w =>
-        w.id === workoutId
-          ? {
-              ...w,
-              exercises: [...w.exercises, newExercise]
-            }
-          : w
-      )
-    };
-  });
-
-    alert("Övningen lades till!");
-    setActiveWorkoutId(null);
+    const dto: AddWorkoutExerciseDto = {
+      exerciseId: Number(formData.get("exerciseId")),
+      rep: Number(formData.get("reps")),
+      set: Number(formData.get("sets"))
+    }
+    try {
+      const data: NewExerciseResponse = await addExercise(workoutId, dto);
+      const foundExercise = allExercises.find(e => e.id === data.exerciseId);
+      const newExercise: ExerciseDetail = {
+        id: data.id,
+        exerciseId: data.exerciseId,
+        exerciseName: foundExercise?.exerciseName || "Okänd övning",
+        set: data.set,
+        rep: data.rep
+      };
+      setGymProgram(prev => {
+        if(!prev) return prev;
+        return {...prev, workouts: prev.workouts.map(w => w.id === workoutId ? {...w, exercises: [...w.exercises, newExercise]}: w)}
+      })
+      alert("Övningen lades till!");
+      setActiveWorkoutId(null);
+    } catch (error) {
+      alert((error as Error).message);
+    }
   }
 
   const handleEditSetNRep = async (formData: FormData) => {
     const workoutExerciseId = Number(formData.get("workoutExerciseId"));
-    const set = formData.get("editSet");
-    const rep = formData.get("editRep")
-    const res = await fetch(`https://localhost:44388/api/GymProgram/exercise/${workoutExerciseId}`, {
-      method: "PUT",
-      headers: {"Content-Type" : "application/json", Authorization: `Bearer ${localStorage.getItem("token")}`},
-      body: JSON.stringify({set: set ? Number(set) : undefined, rep: rep ? Number(rep) : undefined})
-    })
+    const setValue = formData.get("editSet");
+    const repValue = formData.get("editRep")
 
-    if(!res.ok) return alert("Kunde inte uppdatera")
-    
-    const data: UpdatedWorkoutExercise = await res.json();
-
-    setGymProgram(prev => {
-      if (!prev) return prev;
-      return {
-        ...prev,
-        workouts: prev?.workouts.map(w => ({
-          ...w,
-          exercises: w.exercises.map(e => e.id === workoutExerciseId ? {...e, set: data.set, rep: data.rep} : e)
-        }))
-      }
-    })
-    setToggleEditSetRepId(null);
-    return alert("Uppdateringen lyckades");
+    const dto: UpdateWorkoutExerciseDto = {
+      set: setValue ? Number(setValue) : undefined,
+      rep: repValue ? Number(repValue) : undefined
+    }
+    try {
+      const data: UpdatedWorkoutExercise = await editSetNRep(workoutExerciseId, dto);
+      setGymProgram(prev => {
+        if(!prev) return prev;
+        return {...prev, workouts: prev?.workouts.map(w => {
+          return {...w, exercises: w.exercises.map(e => e.id === workoutExerciseId ? {...e, set: data.set, rep: data.rep}: e)}
+        })}
+      })
+      setToggleEditSetRepId(null);
+      return alert("Uppdateringen lyckades");
+    } catch (error) {
+      alert((error as Error).message);
+    }
   }
 
   const editWorkoutName = async (id: number) => {

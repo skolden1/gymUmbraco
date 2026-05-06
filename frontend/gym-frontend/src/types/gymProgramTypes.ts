@@ -35,3 +35,14 @@ export type UpdatedWorkoutExercise = {
   set: number,
   rep: number
 }
+
+export type AddWorkoutExerciseDto = {
+  exerciseId: number,
+  rep: number,
+  set: number
+}
+
+export type UpdateWorkoutExerciseDto = {
+  set?: number;
+  rep?: number;
+}

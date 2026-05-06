@@ -1,4 +1,4 @@
-import type { Exercise, GymProgramDetail } from "../types/gymProgramTypes";
+import type { AddWorkoutExerciseDto, Exercise, GymProgramDetail, NewExerciseResponse, UpdatedWorkoutExercise, UpdateWorkoutExerciseDto } from "../types/gymProgramTypes";
 
 const BASE_URL = "https://localhost:44388/api/GymProgram";
 
@@ -45,7 +45,7 @@ export const editProgramName = async (id: number, newName: string):Promise<void>
 }
 
 export const deleteProgram = async (id: number): Promise<void> => {
-  const res = await fetch(`https://localhost:44388/api/GymProgram/${id}`, {
+  const res = await fetch(`${BASE_URL}/${id}`, {
     method: "DELETE",
     headers: {"Content-Type" : "application/json", Authorization: `Bearer ${localStorage.getItem("token")}`}
   });
@@ -53,4 +53,52 @@ export const deleteProgram = async (id: number): Promise<void> => {
     const text = await res.text();
     throw new Error(text || "failed to delete program");
   }
+}
+
+export const deleteWorkout = async (id: number): Promise<void> => {
+  const res = await fetch(`${BASE_URL}/workout/${id}`, {
+    method: "DELETE",
+    headers: {"Content-Type" : "application/json", Authorization: `Bearer ${localStorage.getItem("token")}`}
+  })
+  if(!res.ok){
+    const text = await res.text();
+    throw new Error(text || "Failed to delete workout");
+  }
+}
+
+export const deleteExercise = async (id: number): Promise<void> => {
+  const res = await fetch(`${BASE_URL}/exercise/${id}`, {
+    method: "DELETE",
+    headers: {"Content-Type" : "application/json", Authorization: `Bearer ${localStorage.getItem("token")}`}
+  })
+  if(!res.ok){
+    const text = await res.text();
+    throw new Error(text || "Failed to delete exercise");
+  }
+}
+
+export const addExercise = async (id: number, dto: AddWorkoutExerciseDto): Promise<NewExerciseResponse> => {
+  const res = await fetch(`${BASE_URL}/workout/${id}/exercise`,{
+    method: "POST",
+    headers: {"Content-Type" : "application/json", Authorization: `Bearer ${localStorage.getItem("token")}`},
+    body: JSON.stringify(dto)
+  })
+  if(!res.ok){
+    const text = await res.text();
+    throw new Error(text || "Failed to add exercise");
+  }
+  return res.json();
+}
+
+export const editSetNRep = async (id: number, dto: UpdateWorkoutExerciseDto): Promise<UpdatedWorkoutExercise> => {
+  const res = await fetch(`${BASE_URL}/exercise/${id}`, {
+    method: "PUT",
+    headers: {"Content-Type" : "application/json", Authorization: `Bearer ${localStorage.getItem("token")}`},
+    body: JSON.stringify(dto)
+  })
+  if(!res.ok){
+    const text = await res.text();
+    throw new Error(text || "Failed to edit set/rep");
+  }
+  return res.json();
 }
