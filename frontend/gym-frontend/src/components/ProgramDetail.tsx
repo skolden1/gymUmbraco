@@ -3,27 +3,10 @@ import { useNavigate, useParams } from "react-router-dom"
 import "./ProgramDetail.css"
 import { FaEdit } from "react-icons/fa"
 import { useAuth } from "../contexts/AuthContext"
+import type { GymProgramDetail } from "../types/gymProgramTypes"
+import { fetchGymProgramDetail } from "../services/gymProgramService"
 
-//Refaktorera dessa 3 typer senare, anv exakt samma i editgymprog komp
-type ExerciseDetail = {
-  id: number,
-  exerciseId: number,
-  exerciseName: string,
-  set: number,
-  rep: number
-}
 
-type Workout = {
-  id: number,
-  workoutName: string,
-  exercises: ExerciseDetail[]
-}
-
-type GymProgramDetail = {
-  id: number,
-  programName: string,
-  workouts: Workout[]
-}
 
 const ProgramDetail = () => {
   const { logout } = useAuth()
@@ -33,27 +16,21 @@ const ProgramDetail = () => {
   const [gymProgram, setGymProgram] = useState<GymProgramDetail | null>(null);
 
   useEffect(() => {
-    const fetchGymProgramDetail = async () => {
-      const res = await fetch(`https://localhost:44388/api/GymProgram/${id}`, {
-        method: "GET",
-        headers: {"Content-Type" : "application/json", Authorization: `Bearer ${localStorage.getItem("token")}`}
-      })
-
-      if(!res.ok){
-        //om token rinner ut så navigeras man till login
-        if(res.status === 401){
-          logout();
-          navigate("/login");
-        }
-        const text = await res.text();
-        console.log("Error", text);
-        return
+    const getGymProgramDetail = async () => {
+      try {
+        const data: GymProgramDetail = await fetchGymProgramDetail(Number(id));
+        console.log(data);
+        setGymProgram(data);
+      } catch (error) {
+        if ((error as Error).message === "UNAUTHORIZED") {
+        logout();
+        navigate("/login");
+        return;
       }
-      const data: GymProgramDetail = await res.json()
-      console.log(data)
-      setGymProgram(data)
+        alert((error as Error).message);
+      }
     }
-    fetchGymProgramDetail()
+    getGymProgramDetail()
   }, [id, logout, navigate])
 
   if(!gymProgram) return <p>Loading...</p>

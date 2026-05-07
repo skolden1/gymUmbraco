@@ -1,27 +1,26 @@
 import { Link, useNavigate } from "react-router-dom";
 import "./Register.css";
+import type { RegisterDto } from "../types/authTypes";
+import { registerUser } from "../services/authService";
 
 const Register = () => {
 
   const navigate = useNavigate();
 
   const handleRegistration = async (formData: FormData) => {
-  const objData = {
+  const objData: RegisterDto = {
     emailDto: formData.get("email") as string,
     passwordDto: formData.get("password") as string,
     repeatPasswordDto: formData.get("repeatPw") as string
   }; 
   if(objData.passwordDto !== objData.repeatPasswordDto) return alert("Lösenorden matchar inte");
-  const res = await fetch("https://localhost:44388/api/userauth/register", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(objData)
-  })
-  if(!res.ok) return alert("Något gick fel, försök igen senare");
-  alert("Registrering lyckades, du kan nu logga in");
-  navigate("/login");
+  try {
+    await registerUser(objData);
+    alert("Registrering lyckades, du kan nu logga in");
+    navigate("/login");
+  } catch (error) {
+    alert((error as Error).message);
+  }
   }
 
   return (

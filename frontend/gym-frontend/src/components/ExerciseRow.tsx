@@ -1,10 +1,6 @@
 import {FaTrash} from "react-icons/fa";
-//Denna finns i createprogram också, refaktorera båda till en fil senare och impotera från den ist.
-type ExerciseInput = {
-  exerciseId: string;
-  set: string;
-  rep: string;
-};
+import type { ExerciseInput } from "../types/gymProgramTypes";
+
 // skickar ner från createprogram
 type ExerciseRowProps = {
   i: number,
@@ -16,7 +12,6 @@ type ExerciseRowProps = {
   renderOptions: React.ReactNode;
   removeExercise: (index: number) => void;
 }
-
 
 const ExerciseRow = ({i, ex, exerciseInput, setExerciseInput, renderOptions, removeExercise}: ExerciseRowProps) => {
   return (

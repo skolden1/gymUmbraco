@@ -1,4 +1,4 @@
-import type { AddWorkoutExerciseDto, Exercise, GymProgramDetail, NewExerciseResponse, UpdatedWorkoutExercise, UpdateWorkoutExerciseDto } from "../types/gymProgramTypes";
+import type { AddWorkoutExerciseDto, CreateGymProgramDto, Exercise, GymProgram, GymProgramDetail, NewExerciseResponse, UpdatedWorkoutExercise, UpdateWorkoutExerciseDto } from "../types/gymProgramTypes";
 
 const BASE_URL = "https://localhost:44388/api/GymProgram";
 
@@ -113,4 +113,65 @@ export const setEditWorkoutName = async (id: number, workoutName: string): Promi
     const text = await res.text();
     throw new Error(text || "failed to edit workoutname");
   }
+}
+
+export const fetchExercises = async (): Promise<Exercise[]> => {
+  const res = await fetch(`${BASE_URL}/exercises`, {
+    method: "GET",
+    headers: {"Content-Type" : "application/json"}
+  })
+  if(!res.ok){
+    const text = await res.text();
+    throw new Error(text || "failed to fetch exercises")
+  }
+  const data: Exercise[] = await res.json();
+  return data;
+}
+
+export const fetchCreateGymProgram = async (dto: CreateGymProgramDto): Promise<void> => {
+  const res = await fetch(`${BASE_URL}`, {
+    method: "POST",
+    headers: {"Content-Type": "application/json", Authorization: `Bearer ${localStorage.getItem("token")}`},
+    body: JSON.stringify(dto)
+  })
+  if (!res.ok) {
+    const text = await res.text();
+    if(res.status === 401){
+      throw new Error("UNAUTHORIZED");
+    }
+    throw new Error(text || "Failed to create gymprogram");
+  }
+}
+
+export const fetchGymProgramDetail = async (id: number): Promise<GymProgramDetail> => {
+  const res = await fetch(`${BASE_URL}/${id}`, {
+    method: "GET",
+    headers: {"Content-Type" : "application/json", Authorization: `Bearer ${localStorage.getItem("token")}`}
+  })
+  if(res.status === 401){
+    throw new Error("UNAUTHORIZED")
+  }
+  if(!res.ok){
+    const text = await res.text();
+    throw new Error(text || "Failed to get program details");
+  }
+  const data: GymProgramDetail = await res.json();
+  return data;
+
+}
+
+export const fetchGymPrograms = async (): Promise<GymProgram[]> => {
+  const res = await fetch(`${BASE_URL}/myPrograms`, {
+    method: "GET",
+    headers: {"Content-Type" : "application/json", Authorization: `Bearer ${localStorage.getItem("token")}`}
+  })
+  if(res.status === 401){
+    throw new Error("UNAUTHORIZED")
+  }
+  if(!res.ok){
+    const text = await res.text();
+    throw new Error(text || "Failed to get program details");
+  }
+  const data: GymProgram[] = await res.json();
+  return data;
 }

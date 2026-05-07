@@ -3,6 +3,8 @@ import "./Login.css";
 import { useAuth } from "../contexts/AuthContext";
 import { useEffect } from "react";
 import { Link } from "react-router-dom";
+import type { LoginDto } from "../types/authTypes";
+import { loginUser } from "../services/authService";
 
 const Login = () => {
   const { login, isAuth } = useAuth();
@@ -15,25 +17,16 @@ const Login = () => {
   }, [isAuth, navigate]);
 
   const handleLogin = async (formData: FormData) => {
-    const objData = {
+    const objData: LoginDto = {
       emailDto: formData.get("email") as string,
       passwordDto: formData.get("password") as string
     };
-
-    const res = await fetch("https://localhost:44388/api/userauth/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(objData)
-    });
-
-    if (!res.ok) {
-      const errorText = await res.text();
-      return alert(errorText || "Fel email eller lösenord");
+    try {
+      const data = await loginUser(objData);
+      login(data.token)
+    } catch (error) {
+      alert((error as Error).message);
     }
-
-    const data = await res.json();
-
-    login(data.token); 
   };
 
   return (

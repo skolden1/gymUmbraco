@@ -3,11 +3,9 @@ import "./Dashboard.css"
 import { useEffect, useState } from "react"
 import gymProgramDefault from "../assets/gymProgramDefault.png"
 import { useAuth } from "../contexts/AuthContext"
+import type { GymProgram } from "../types/gymProgramTypes"
+import { fetchGymPrograms } from "../services/gymProgramService"
 
-type GymProgram = {
-  id: number,
-  programName: string
-}
 
 const Dashboard = () => {
   const { logout } = useAuth()
@@ -17,21 +15,17 @@ const Dashboard = () => {
 
   useEffect(() => {
     const getGymPrograms = async () => {
-    const res = await fetch("https://localhost:44388/api/GymProgram/myPrograms", {
-      method: "GET",
-      headers: {"Content-Type" : "application/json", Authorization: `Bearer ${localStorage.getItem("token")}`}
-    })
-
-    if(!res.ok){
-      if(res.status === 401){
-          logout();
-          navigate("/login");
-        }
-      console.log("Error fetching programs")
-      return
+    try {
+      const data: GymProgram[] = await fetchGymPrograms();
+      setGymProgram(data);
+    } catch (error) {
+      if ((error as Error).message === "UNAUTHORIZED") {
+        logout();
+        navigate("/login");
+        return;
+      }
+      alert((error as Error).message);
     }
-    const data: GymProgram[] = await res.json()
-    setGymProgram(data);
   }
   getGymPrograms();
   }, [logout, navigate])

@@ -21,6 +21,7 @@ export type GymProgramDetail = {
 export type Exercise = {
   id: number,
   exerciseName: string
+  pictureUrl: string | null
 }
 
 export type NewExerciseResponse = {
@@ -45,4 +46,36 @@ export type AddWorkoutExerciseDto = {
 export type UpdateWorkoutExerciseDto = {
   set?: number;
   rep?: number;
+}
+
+export type ExerciseInput = {
+  exerciseId: string;
+  set: string;
+  rep: string;
+};
+
+export type WorkoutInput = {
+  workoutName: string;
+  exercises: ExerciseInput[];
+};
+
+export type CreateWorkoutExerciseDto = {
+  exerciseId: number;
+  set: number;
+  rep: number;
+}
+
+export type CreateWorkoutDto = {
+  workoutName: string;
+  exercises: CreateWorkoutExerciseDto[];
+}
+
+export type CreateGymProgramDto = {
+  programName: string;
+  workouts: CreateWorkoutDto[];
+}
+
+export type GymProgram = {
+  id: number,
+  programName: string
 }

@@ -5,25 +5,8 @@ import ExerciseRow from "./ExerciseRow";
 import { FaTimes } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
-
- //Type för exercise obj från bkend
-  type Exercise = {
-    id: number;
-    exerciseName: string;
-    pictureUrl: string | null;
-  };
-
-  //Denna finns i exrow komp också, refaktorera båda till en fil senare och impotera från den ist.
-  type ExerciseInput = {
-  exerciseId: string;
-  set: string;
-  rep: string;
-};
-
-  type WorkoutInput = {
-    workoutName: string;
-    exercises: ExerciseInput[];
-  }
+import type { CreateGymProgramDto, Exercise, ExerciseInput, WorkoutInput } from "../types/gymProgramTypes";
+import { fetchCreateGymProgram, fetchExercises } from "../services/gymProgramService";
 
 const CreateProgram = () => {
   const navigate = useNavigate();
@@ -38,52 +21,47 @@ const CreateProgram = () => {
 
 
   useEffect(() => {
-    const fetchExercise = async () => {
-      const res = await fetch("https://localhost:44388/api/gymprogram/exercises", {
-        method: "GET",
-        headers: {"Content-Type" : "application/json"}
-      })
-      const data: Exercise[] = await res.json();
-      setExercises(data)
-      console.log("data", data)
+    const fetchExerciseData = async () => {
+      try {
+        const data: Exercise[] = await fetchExercises();
+        setExercises(data);
+        console.log("data", data)
+      } catch (error) {
+        alert((error as Error).message)
+      }
     }
-    fetchExercise()
+    fetchExerciseData()
   }, []);
 
-  const createGymProgram = async () => {
-  const res = await fetch("https://localhost:44388/api/GymProgram", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${localStorage.getItem("token")}`
-    },
-    body: JSON.stringify({
-      programName,
-      workouts: workouts.map(w => ({
-        workoutName: w.workoutName,
-        exercises: w.exercises.map(ex => ({
-          exerciseId: Number(ex.exerciseId),
-          set: Number(ex.set),
-          rep: Number(ex.rep)
-        }))
+const createGymProgram = async () => {
+  const dto: CreateGymProgramDto = {
+    programName,
+    workouts: workouts.map(w => ({
+      workoutName: w.workoutName,
+      exercises: w.exercises.map(ex => ({
+        exerciseId: Number(ex.exerciseId),
+        set: Number(ex.set),
+        rep: Number(ex.rep)
       }))
-    })
-  });
+    }))
+  };
 
-  if (!res.ok) {
-    //om token rinner ut så navigeras man till login
-    if(res.status === 401){
-          logout();
-          navigate("/login");
+  try {
+    await fetchCreateGymProgram(dto);
+
+    alert("Program skapat!");
+    navigate("/dashboard");
+
+  } catch (error) {
+    const err = error as Error;
+
+    if (err.message === "UNAUTHORIZED") {
+      logout();
+      navigate("/login");
+    } else {
+      alert(err.message);
     }
-    const text = await res.text();
-    console.log(text);
-    alert("Något gick fel");
-    return;
   }
-
-  alert("Program skapat!");
-  navigate("/dashboard")
 };
 
   const addWorkoutInCurrentProgram = () => {
