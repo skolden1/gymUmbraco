@@ -102,3 +102,15 @@ export const editSetNRep = async (id: number, dto: UpdateWorkoutExerciseDto): Pr
   }
   return res.json();
 }
+
+export const setEditWorkoutName = async (id: number, workoutName: string): Promise<void> => {
+  const res = await fetch(`${BASE_URL}/workout/${id}`, {
+    method: "PUT",
+    headers: {"Content-Type" : "application/json", Authorization: `Bearer ${localStorage.getItem("token")}`},
+    body: JSON.stringify({workoutName})
+  })
+  if(!res.ok){
+    const text = await res.text();
+    throw new Error(text || "failed to edit workoutname");
+  }
+}

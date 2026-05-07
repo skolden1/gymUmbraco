@@ -4,7 +4,7 @@ import { useEffect, useState } from "react"
 import { FaEdit } from "react-icons/fa"
 import { FiX, FiEdit, FiTrash2 } from "react-icons/fi"
 import "./EditGymProgram.css"
-import { addExercise, deleteExercise, deleteProgram, deleteWorkout, editProgramName, editSetNRep, getExercises, getGymProgramDetail } from "../services/gymProgramService"
+import { addExercise, deleteExercise, deleteProgram, deleteWorkout, editProgramName, editSetNRep, getExercises, getGymProgramDetail, setEditWorkoutName } from "../services/gymProgramService"
 import type {
   GymProgramDetail,
   Exercise,
@@ -177,7 +177,7 @@ const EditGymProgram = () => {
       const data: UpdatedWorkoutExercise = await editSetNRep(workoutExerciseId, dto);
       setGymProgram(prev => {
         if(!prev) return prev;
-        return {...prev, workouts: prev?.workouts.map(w => {
+        return {...prev, workouts: prev.workouts.map(w => {
           return {...w, exercises: w.exercises.map(e => e.id === workoutExerciseId ? {...e, set: data.set, rep: data.rep}: e)}
         })}
       })
@@ -189,29 +189,20 @@ const EditGymProgram = () => {
   }
 
   const editWorkoutName = async (id: number) => {
-    const workoutName = editWorkoutNameValue
-    const res = await fetch(`https://localhost:44388/api/GymProgram/workout/${id}`, {
-      method: "PUT",
-      headers: {"Content-Type" : "application/json", Authorization: `Bearer ${localStorage.getItem("token")}`},
-      body: JSON.stringify({workoutName})
-    })
-    
-    if(!res.ok) return alert("Det gick inte att uppdatera namnet")
-    
-    setGymProgram(prev => {
-      if (!prev) return prev;
-
-      return{
-        ...prev,
-        workouts: prev?.workouts.map(w => 
-          w.id === id ? {...w, workoutName: editWorkoutNameValue} : w
-        )
-      }
-    })
-
-    alert("Namnet uppdaterades");
-    setToggleEditWorkoutNameId(null);
-    setEditWorkoutNameValue("");
+    const newWorkoutName = editWorkoutNameValue
+    try {
+      await setEditWorkoutName(id, newWorkoutName);
+      setGymProgram(prev => {
+        if(!prev) return prev;
+        return {...prev, 
+          workouts: prev.workouts.map(w => w.id === id ? {...w, workoutName: newWorkoutName}: w)}
+      })
+      alert("Namnet uppdaterades");
+      setToggleEditWorkoutNameId(null);
+      setEditWorkoutNameValue("");
+    } catch (error) {
+      alert((error as Error).message);
+    }
   }
 
   return (
