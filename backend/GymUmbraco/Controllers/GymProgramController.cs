@@ -1,6 +1,7 @@
 ﻿using GymUmbraco.Data;
 using GymUmbraco.Dtos;
 using GymUmbraco.Models;
+using GymUmbraco.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -12,9 +13,13 @@ namespace GymUmbraco.Controllers
     [Route("api/[controller]")]
     public class GymProgramController : ControllerBase
     {
+        private readonly GymProgramService _gymProgramService;
+
+        //Refaktorera bort senare då min gymprogram service fil har anslutningen till db ist för denna
         private readonly AppDbContext _context;
-        public GymProgramController(AppDbContext context)
+        public GymProgramController(GymProgramService gymProgramService, AppDbContext context)
         {
+            _gymProgramService = gymProgramService;
             _context = context;
         }
 
@@ -28,26 +33,14 @@ namespace GymUmbraco.Controllers
 
             var userId = int.Parse(userIdClaim);
 
-            if (dto.Workouts == null || !dto.Workouts.Any()) return BadRequest("Programmet måste innehålla minst ett pass");
-            var program = new GymProgram
+            try{
+                await _gymProgramService.CreateProgram(dto, userId);
+                return Ok();
+            }
+            catch (Exception ex)
             {
-                ProgramName = dto.ProgramName,
-                UserId = userId,
-                Workouts = dto.Workouts.Select(w => new Workout
-                {
-                    WorkoutName = w.WorkoutName,
-                    WorkoutExercises = w.Exercises.Select(e => new WorkoutExercise
-                    {
-                        ExerciseId = e.ExerciseId,
-                        Set = e.Set,
-                        Rep = e.Rep
-                    }).ToList()
-                }).ToList()
-            };
-
-            await _context.GymPrograms.AddAsync(program);
-            await _context.SaveChangesAsync();
-            return Ok();
+                return BadRequest(ex.Message);
+            }
         }
 
         //bara för dashboard, todo: fixa en till endpoint som hämtar workouts och allt senare.
@@ -59,14 +52,7 @@ namespace GymUmbraco.Controllers
             if (userIdClaim == null) return Unauthorized("User ID claim saknas");
 
             var userId = int.Parse(userIdClaim);
-
-            var gymPrograms = await _context.GymPrograms
-                .Where(p => p.UserId == userId)
-                .Select(p => new {
-                    id = p.Id,
-                    programName = p.ProgramName
-                })
-                .ToListAsync();
+            var gymPrograms = await _gymProgramService.GetMyPrograms(userId);
 
             return Ok(gymPrograms);
         }
@@ -80,28 +66,8 @@ namespace GymUmbraco.Controllers
 
             var userId = int.Parse(userIdClaim);
 
-            var program = await _context.GymPrograms.Where(p => p.Id == id && p.UserId == userId).Select(p => new
-            {
-                id = p.Id,
-                programName = p.ProgramName,
-
-                workouts = p.Workouts.Select(w => new
-                {
-                    id = w.Id,
-                    workoutName = w.WorkoutName,
-
-                    exercises = w.WorkoutExercises.Select(e => new
-                    {
-                        id = e.Id,
-                        exerciseId = e.ExerciseId,
-                        exerciseName = e.Exercise.ExerciseName,
-                        set = e.Set,
-                        rep = e.Rep
-                    }).ToList()
-                }).ToList()
-            }).FirstOrDefaultAsync();
+            var program = await _gymProgramService.GetProgramById(id, userId);
             if (program == null) return NotFound();
-
             return Ok(program);
         }
 
@@ -114,13 +80,15 @@ namespace GymUmbraco.Controllers
 
             var userId = int.Parse(userIdClaim);
 
-            var program = await _context.GymPrograms.FirstOrDefaultAsync(p => p.UserId == userId && p.Id == id);
-            if(program == null) return NotFound("Programmet hittades inte");
-
-            program.ProgramName = dto.GymProgramName;
-
-            await _context.SaveChangesAsync();
-            return Ok();
+            try
+            {
+                await _gymProgramService.EditProgramNameById(id, userId, dto);
+                return Ok();
+            } 
+            catch(Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
 
         [Authorize]
@@ -132,11 +100,14 @@ namespace GymUmbraco.Controllers
 
             var userId = int.Parse(userIdClaim);
 
-            var workout = await _context.Workouts.FirstOrDefaultAsync(w => w.Id == id && w.GymProgram.UserId == userId);
-            if(workout == null) return NotFound("Passet hittades inte");
-
-            workout.WorkoutName = dto.WorkoutName;
-            await _context.SaveChangesAsync();
+            try
+            {
+                await _gymProgramService.EditWorkoutNameById(id, userId, dto);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
             return Ok();
         }
 

@@ -1,4 +1,5 @@
 using GymUmbraco.Data;
+using GymUmbraco.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -17,6 +18,9 @@ builder.CreateUmbracoBuilder()
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"))
 );
+
+
+builder.Services.AddScoped<GymProgramService>();
 
 
 builder.Services.AddCors(options =>
