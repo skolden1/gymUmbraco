@@ -15,12 +15,9 @@ namespace GymUmbraco.Controllers
     {
         private readonly GymProgramService _gymProgramService;
 
-        //Refaktorera bort senare då min gymprogram service fil har anslutningen till db ist för denna
-        private readonly AppDbContext _context;
-        public GymProgramController(GymProgramService gymProgramService, AppDbContext context)
+        public GymProgramController(GymProgramService gymProgramService)
         {
             _gymProgramService = gymProgramService;
-            _context = context;
         }
 
         [Authorize]
@@ -119,20 +116,15 @@ namespace GymUmbraco.Controllers
             if (userIdClaim == null) return Unauthorized("User ID claim saknas");
             var userId = int.Parse(userIdClaim);
 
-            var workoutExercise = await _context.WorkoutExercises.FirstOrDefaultAsync(we => we.Workout.GymProgram.UserId == userId && we.Id == id);
-            if (workoutExercise == null) return NotFound("Övningen hittades inte");
-
-            if (dto.Set.HasValue)
+            try
             {
-                workoutExercise.Set = dto.Set.Value;
+                var workoutExercise = await _gymProgramService.EditWorkoutExercise(id, userId, dto);
+                return Ok(workoutExercise);
             }
-            if (dto.Rep.HasValue)
+            catch (Exception ex)
             {
-                workoutExercise.Rep = dto.Rep.Value;
+                return NotFound(ex.Message);
             }
-
-            await _context.SaveChangesAsync();
-            return Ok(new {id = workoutExercise.Id, set = workoutExercise.Set, rep = workoutExercise.Rep});
         }
 
         [Authorize]
@@ -143,25 +135,15 @@ namespace GymUmbraco.Controllers
             if (userIdClaim == null) return Unauthorized("User ID claim saknas");
             var userId = int.Parse(userIdClaim);
 
-            var workout = await _context.Workouts.FirstOrDefaultAsync(w => w.Id == workoutId && w.GymProgram.UserId == userId);
-            if (workout == null) return NotFound("Passet hittades inte");
-
-            var newExercise = new WorkoutExercise
+            try
             {
-                WorkoutId = workoutId,
-                ExerciseId = dto.ExerciseId,
-                Set = dto.Set,
-                Rep = dto.Rep,
-            };
-            await _context.WorkoutExercises.AddAsync(newExercise);
-            await _context.SaveChangesAsync();
-            return Ok(new 
+                var addNewExercise = await _gymProgramService.AddExerciseToWorkout(workoutId, userId, dto);
+                return Ok(addNewExercise);
+            }
+            catch (Exception ex)
             {
-                id = newExercise.Id,
-                exerciseId = newExercise.ExerciseId,
-                set = newExercise.Set,
-                rep = newExercise.Rep
-            });
+               return NotFound(ex.Message);
+            }
         }
 
         [Authorize]
@@ -172,12 +154,15 @@ namespace GymUmbraco.Controllers
             if (userIdClaim == null) return Unauthorized("User ID claim saknas");
             var userId = int.Parse(userIdClaim);
 
-            var workoutExercise = await _context.WorkoutExercises.FirstOrDefaultAsync(we => we.Id == id && we.Workout.GymProgram.UserId == userId);
-            if (workoutExercise == null) return NotFound("Övningen hittades inte");
-
-            _context.WorkoutExercises.Remove(workoutExercise);
-            await _context.SaveChangesAsync();
-            return Ok();
+            try
+            {
+                await _gymProgramService.DeleteExerciseFromWorkout(id, userId);
+                return Ok();
+            }
+            catch(Exception ex)
+            {
+                return NotFound(ex.Message);
+            }
         }
 
         [Authorize]
@@ -188,17 +173,15 @@ namespace GymUmbraco.Controllers
             if (userIdClaim == null) return Unauthorized("User ID claim saknas");
             var userId = int.Parse(userIdClaim);
 
-            var gymProgram = await _context.GymPrograms.FirstOrDefaultAsync(p => p.Id == programId && p.UserId == userId);
-            if (gymProgram == null) return NotFound("Programmet hittades inte");
-
-            var newWorkout = new Workout
+            try
             {
-                WorkoutName = dto.WorkoutName,
-                GymProgramId = programId
-            };
-            await _context.Workouts.AddAsync(newWorkout);
-            await _context.SaveChangesAsync();
-            return Ok();
+                await _gymProgramService.AddWorkoutToProgram(programId, userId, dto);
+                return Ok();
+            }
+            catch(Exception ex)
+            {
+                return NotFound(ex.Message);
+            }
         }
 
         [Authorize]
@@ -209,14 +192,15 @@ namespace GymUmbraco.Controllers
             if (userIdClaim == null) return Unauthorized("User ID claim saknas");
             var userId = int.Parse(userIdClaim);
 
-            var workout = await _context.Workouts.Include(w => w.WorkoutExercises).FirstOrDefaultAsync(w => w.Id == id && w.GymProgram.UserId == userId);
-            if (workout == null) return NotFound("Passet hittades inte");
-
-            _context.WorkoutExercises.RemoveRange(workout.WorkoutExercises);
-
-            _context.Workouts.Remove(workout);
-            await _context.SaveChangesAsync();
-            return Ok();
+            try
+            {
+                await _gymProgramService.DeleteWorkout(id, userId);
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                return NotFound(ex.Message);
+            }
         }
 
         [Authorize]
@@ -228,32 +212,23 @@ namespace GymUmbraco.Controllers
 
             var userId = int.Parse(userIdClaim);
 
-            var program = await _context.GymPrograms
-                .Include(p => p.Workouts)
-                    .ThenInclude(w => w.WorkoutExercises)
-                .FirstOrDefaultAsync(p => p.Id == id && p.UserId == userId);
-
-            if(program == null) return NotFound("Programmet hittades inte");
-
-   
-            _context.WorkoutExercises.RemoveRange(program.Workouts.SelectMany(w => w.WorkoutExercises));
-
-            _context.Workouts.RemoveRange(program.Workouts);
-
-            _context.GymPrograms.Remove(program);
-
-            await _context.SaveChangesAsync();
-
-            return Ok();
+            try
+            {
+                await _gymProgramService.DeleteProgram(id, userId);
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                return NotFound(ex.Message);
+            }
         }
 
         // alla ska nå denna så ej authorize, detta ska ba va en global lista för alla
         [HttpGet("exercises")]
         public async Task<IActionResult> GetAllExercises()
         {
-           var exercises = await _context.Exercises.ToListAsync();
+            var exercises = await _gymProgramService.GetAllExercises();
             return Ok(exercises);
-
         }
     }
 }

@@ -104,5 +104,121 @@ namespace GymUmbraco.Services
             workout.WorkoutName = dto.WorkoutName;
             await _context.SaveChangesAsync();
         }
+
+        public async Task<UpdatedWorkoutExerciseDto> EditWorkoutExercise(int id, int userId, EditWorkoutExerciseDto dto)
+        {
+            var workoutExercise = await _context.WorkoutExercises.FirstOrDefaultAsync(we => we.Workout.GymProgram.UserId == userId && we.Id == id);
+            if (workoutExercise == null)
+            {
+                throw new Exception("Workout exercise not found"); 
+            }
+
+            if (dto.Set.HasValue)
+            {
+                workoutExercise.Set = dto.Set.Value;
+            }
+            if (dto.Rep.HasValue)
+            {
+                workoutExercise.Rep = dto.Rep.Value;
+            }
+            await _context.SaveChangesAsync();
+            return new UpdatedWorkoutExerciseDto
+            {
+                Id = workoutExercise.Id,
+                Set = workoutExercise.Set,
+                Rep = workoutExercise.Rep
+            };
+        }
+
+        public async Task<AddedWorkoutExerciseDto> AddExerciseToWorkout(int workoutId, int userId, AddWorkoutExerciseDto dto)
+        {
+            var workout = await _context.Workouts.FirstOrDefaultAsync(w => w.Id == workoutId && w.GymProgram.UserId == userId);
+            if (workout == null)
+            {
+                throw new Exception("Workout not found");
+            }
+            var newExercise = new WorkoutExercise
+            {
+                WorkoutId = workoutId,
+                ExerciseId = dto.ExerciseId,
+                Set = dto.Set,
+                Rep = dto.Rep,
+            };
+            await _context.WorkoutExercises.AddAsync(newExercise);
+            await _context.SaveChangesAsync();
+
+            return new AddedWorkoutExerciseDto
+            {
+                Id = newExercise.Id,
+                ExerciseId = newExercise.ExerciseId,
+                Set = newExercise.Set,
+                Rep = newExercise.Rep
+            };
+        }
+
+        public async Task DeleteExerciseFromWorkout(int id, int userId)
+        {
+            var workoutExercise = await _context.WorkoutExercises.FirstOrDefaultAsync(we => we.Id == id && we.Workout.GymProgram.UserId == userId);
+            if (workoutExercise == null)
+            {
+                throw new Exception("Exercise not found");
+            }
+            _context.WorkoutExercises.Remove(workoutExercise);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task AddWorkoutToProgram(int programId, int userId, AddWorkoutDto dto)
+        {
+            var gymProgram = await _context.GymPrograms.FirstOrDefaultAsync(p => p.Id == programId && p.UserId == userId); 
+            if(gymProgram == null)
+            {
+                throw new Exception("Gym program not found");
+            }
+
+            var newWorkout = new Workout
+            {
+                WorkoutName = dto.WorkoutName,
+                GymProgramId = programId 
+            };
+            await _context.Workouts.AddAsync(newWorkout);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task DeleteWorkout(int id, int userId)
+        {
+            var workout = await _context.Workouts.Include(w => w.WorkoutExercises).FirstOrDefaultAsync(w => w.Id == id && w.GymProgram.UserId == userId);
+            if(workout == null)
+            {
+                throw new Exception("Workout not found");
+            }
+            _context.WorkoutExercises.RemoveRange(workout.WorkoutExercises);
+            _context.Workouts.Remove(workout);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task DeleteProgram(int id, int userId)
+        {
+
+            var program = await _context.GymPrograms
+                .Include(p => p.Workouts)
+                    .ThenInclude(w => w.WorkoutExercises)
+                .FirstOrDefaultAsync(p => p.Id == id && p.UserId == userId);
+
+            if (program == null)
+            {
+                throw new Exception("Program not found");
+            }
+            _context.WorkoutExercises.RemoveRange(program.Workouts.SelectMany(w => w.WorkoutExercises));
+            _context.Workouts.RemoveRange(program.Workouts);
+            _context.GymPrograms.Remove(program);
+
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task<List<Exercise>> GetAllExercises()
+        {
+            var exercises = await _context.Exercises.ToListAsync();
+            return exercises;
+        }
     }
 }
