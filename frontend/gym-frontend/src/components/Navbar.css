@@ -5,8 +5,7 @@ nav{
 
 .navLeft{
   display: flex;
-  gap: 10px
-  ;
+  gap: 10px;
 }
 
 header ul {
@@ -42,7 +41,7 @@ header ul li {
   display: flex;
   align-items: center;
   gap: 10px;
-  color: white;
+  color: #b8c7d1;
 }
 
 .logoutBtn{
@@ -54,4 +53,34 @@ header ul li {
 
 .logoutBtn:hover{
   background-color: #c5c4c4;
+}
+
+.burgerCrossIcon,
+.burgerIcon{
+  display: none;
+  color: white;
+  font-size: 29px;
+  cursor: pointer;
+}
+
+@media (max-width: 680px) {
+
+  .burgerIcon,
+  .burgerCrossIcon{
+    display: block;
+  }
+
+  header ul {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .activeMenu{
+    display: flex;
+  }
+
+  .row {
+    flex-direction: column;
+  }
 }
