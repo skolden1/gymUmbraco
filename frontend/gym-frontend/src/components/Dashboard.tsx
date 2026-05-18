@@ -32,12 +32,15 @@ const Dashboard = () => {
 
   const renderGymPrograms = gymProgram.map(p => {
     return <div className="gymProgramCard" key={p.id}>
-        <h3>{p.programName}</h3>
-        <img className="gymProgramPic" src={gymProgramDefault} />
-        <Link to={`/program/${p.id}`}>
-          <button>Visa program</button>
-        </Link>
-    </div>
+            <h3>{p.programName}</h3>
+            <Link to={`/program/${p.id}`}>
+              <img className="gymProgramPic" src={gymProgramDefault} />
+            </Link>
+            <Link to={`/program/${p.id}`}>
+              <button>Visa program</button>
+            </Link>
+      </div>
+    
   })
 
 

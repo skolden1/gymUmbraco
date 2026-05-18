@@ -64,6 +64,16 @@ const createGymProgram = async () => {
   }
 };
 
+//sortera efter alfabetisk ordning på alla övningar, eventuellt flytta ut denna till en annan fil
+//om jag vill återanv **kom ihåg**
+const sortExercisesByName = (exercises: Exercise[]) => {
+  return [...exercises].sort((a, b) => {
+    if(a.exerciseName > b.exerciseName) return 1;
+    if(a.exerciseName < b.exerciseName) return -1;
+    return 0;
+  })
+}
+
   const addWorkoutInCurrentProgram = () => {
     setWorkouts(prev => [...prev, {workoutName: "", exercises: [{exerciseId: "", set: "", rep: ""}]}])
   }
@@ -73,7 +83,7 @@ const createGymProgram = async () => {
     setWorkouts(prev => prev.filter((w, index) => idx !== index))
   }
 
-  const renderOptions = exercises.map(ex => (
+  const renderOptions = sortExercisesByName(exercises).map(ex => (
   <option key={ex.id} value={ex.id}>
     {ex.exerciseName}
   </option>
