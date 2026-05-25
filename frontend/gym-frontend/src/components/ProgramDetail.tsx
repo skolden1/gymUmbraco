@@ -47,7 +47,10 @@ const ProgramDetail = () => {
         
         {gymProgram.workouts.map(w => (
           <div className="workoutCard" key={w.id}>
-            <h4 className="workoutTitle">{w.workoutName}</h4>
+            <div className="startWorkoutRow">
+              <h4 className="workoutTitle">{w.workoutName}</h4>
+              <button onClick={() => navigate(`/workout-session-page/${gymProgram.id}/${w.id}`)} className="startWorkoutBtn">Starta pass</button>
+            </div>
 
             <div className="exerciseList">
               {w.exercises.map(e => (

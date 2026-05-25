@@ -8,6 +8,7 @@ import Navbar from './components/Navbar'
 import CreateProgram from './components/CreateProgram'
 import ProgramDetail from './components/ProgramDetail'
 import EditGymProgram from './components/EditGymProgram'
+import WorkoutSessionPage from './components/WorkoutSessionPage'
 
 function App() {
   const { isAuth, loading } = useAuth();
@@ -29,6 +30,8 @@ function App() {
 
         <Route path="/program/:id" element={<ProgramDetail/>} />
         <Route path="/edit-program/:id" element={<EditGymProgram />} />
+
+        <Route path='/workout-session-page/:programId/:workoutId' element={<WorkoutSessionPage />} />
 
         <Route path='/CreateProgram' element={ isAuth ? <CreateProgram/> : <Navigate to="/login" /> } />
       </Routes>

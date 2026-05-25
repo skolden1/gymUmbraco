@@ -50,6 +50,10 @@
   cursor: pointer;
 }
 
+.gymProgramCard button:hover{
+  background-color: rgba(109, 163, 243, 0.685);
+}
+
 .programContainer {
   display: flex;
   flex-wrap: wrap;

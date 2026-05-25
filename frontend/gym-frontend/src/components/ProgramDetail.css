@@ -34,6 +34,7 @@ h1 {
   border: none;
 }
 
+
 .editBtn:hover{
   background-color: #9c9b9b8e;
 }
@@ -57,6 +58,25 @@ h1 {
   font-weight: 600;
 }
 
+.startWorkoutRow{
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 0px;
+}
+
+.startWorkoutBtn{
+  background-color: #33869b;
+  color: #ffffff;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.startWorkoutBtn:hover{
+  background-color: #2a6e7b;
+}
 
 .workoutCard {
   background-color: #ffffff;
@@ -69,7 +89,6 @@ h1 {
 .workoutTitle {
   font-size: 16px;
   font-weight: 600;
-  margin-bottom: 12px;
 }
 
 .exerciseList {
