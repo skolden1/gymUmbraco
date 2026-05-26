@@ -14,11 +14,37 @@ namespace GymUmbraco.Data
         public DbSet<User> Users { get; set; }
         public DbSet<Workout> Workouts { get; set; }
         public DbSet<WorkoutExercise> WorkoutExercises { get; set; }
+        public DbSet<WorkoutSession> WorkoutSessions { get; set; }
+        public DbSet<WorkoutSessionExercise> WorkoutSessionExercises { get; set; }
 
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
+
+            modelBuilder.Entity<WorkoutSession>()
+        .HasOne(ws => ws.User)
+        .WithMany()
+        .HasForeignKey(ws => ws.UserId)
+        .OnDelete(DeleteBehavior.NoAction);
+
+            modelBuilder.Entity<WorkoutSession>()
+                .HasOne(ws => ws.Workout)
+                .WithMany()
+                .HasForeignKey(ws => ws.WorkoutId)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            modelBuilder.Entity<WorkoutSessionExercise>()
+                .HasOne(wse => wse.WorkoutSession)
+                .WithMany(ws => ws.WorkoutSessionExercises)
+                .HasForeignKey(wse => wse.WorkoutSessionId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<WorkoutSessionExercise>()
+                .HasOne(wse => wse.Exercise)
+                .WithMany()
+                .HasForeignKey(wse => wse.ExerciseId)
+                .OnDelete(DeleteBehavior.NoAction);
 
             modelBuilder.Entity<Exercise>().HasData(
                 new Exercise { Id = 1, ExerciseName = "Bänkpress" },
