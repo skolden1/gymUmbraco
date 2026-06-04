@@ -28,32 +28,31 @@ namespace GymUmbraco.Controllers
             var userId = int.Parse(userIdClaim);
 
             var workoutExists = await _context.Workouts
-            .Include(w => w.GymProgram)
-            .AnyAsync(w => w.Id == dto.WorkoutId && w.GymProgram.UserId == userId);
+                .Include(w => w.GymProgram)
+                .AnyAsync(w => w.Id == dto.WorkoutId && w.GymProgram.UserId == userId);
 
             if (!workoutExists)
             {
-                return Unauthorized(
-                "Workout tillhör inte användaren"
-                );
+                return Unauthorized("Workout tillhör inte användaren");
             }
 
             var exerciseExists = await _context.WorkoutExercises
-              .AnyAsync(
-              we =>
-              we.WorkoutId == dto.WorkoutId &&
-              we.ExerciseId == dto.ExerciseId
-              );
+                .AnyAsync(we =>
+                    we.WorkoutId == dto.WorkoutId &&
+                    we.ExerciseId == dto.ExerciseId);
 
             if (!exerciseExists)
             {
-                return BadRequest(
-                    "Couldnt not find that exercise in the workout"
-                );
+                return BadRequest("Couldnt not find that exercise in the workout");
             }
 
-            var workoutSession = await _context.WorkoutSessions.FirstOrDefaultAsync(ws => ws.UserId == userId && ws.WorkoutId == dto.WorkoutId && !ws.IsCompleted);
-            if(workoutSession == null)
+            var workoutSession = await _context.WorkoutSessions
+                .FirstOrDefaultAsync(ws =>
+                    ws.UserId == userId &&
+                    ws.WorkoutId == dto.WorkoutId &&
+                    !ws.IsCompleted);
+
+            if (workoutSession == null)
             {
                 workoutSession = new WorkoutSession
                 {
@@ -62,8 +61,33 @@ namespace GymUmbraco.Controllers
                     StartedAt = DateTime.UtcNow,
                     IsCompleted = false
                 };
+
                 _context.WorkoutSessions.Add(workoutSession);
                 await _context.SaveChangesAsync();
+            }
+
+            var existingSet = await _context.WorkoutSessionExercises
+                .FirstOrDefaultAsync(wse =>
+                    wse.WorkoutSessionId == workoutSession.Id &&
+                    wse.ExerciseId == dto.ExerciseId &&
+                    wse.SetNumber == dto.SetNumber);
+
+            if (existingSet != null)
+            {
+                existingSet.RepsDone = dto.RepsDone;
+                existingSet.Weight = dto.Weight;
+
+                await _context.SaveChangesAsync();
+
+                return Ok(new
+                {
+                    existingSet.Id,
+                    existingSet.WorkoutSessionId,
+                    existingSet.ExerciseId,
+                    existingSet.SetNumber,
+                    existingSet.RepsDone,
+                    existingSet.Weight
+                });
             }
 
             var workoutSessionExercise = new WorkoutSessionExercise
@@ -74,10 +98,21 @@ namespace GymUmbraco.Controllers
                 RepsDone = dto.RepsDone,
                 Weight = dto.Weight,
             };
+
             await _context.WorkoutSessionExercises.AddAsync(workoutSessionExercise);
             await _context.SaveChangesAsync();
-            return Ok(workoutSessionExercise);
+
+            return Ok(new
+            {
+                workoutSessionExercise.Id,
+                workoutSessionExercise.WorkoutSessionId,
+                workoutSessionExercise.ExerciseId,
+                workoutSessionExercise.SetNumber,
+                workoutSessionExercise.RepsDone,
+                workoutSessionExercise.Weight
+            });
         }
+
 
         [Authorize]
         [HttpPut("update-set/{id}")]
@@ -107,15 +142,15 @@ namespace GymUmbraco.Controllers
         }
 
         [Authorize]
-        [HttpPut("complete-session/{sessionId}")]
-        public async Task<IActionResult> CompleteSession(int sessionId)
+        [HttpPut("complete-session/{workoutId}")]
+        public async Task<IActionResult> CompleteSession(int workoutId)
         {
             var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (userIdClaim == null) return Unauthorized("User ID claim saknas");
 
             var userId = int.Parse(userIdClaim);
 
-            var session = await _context.WorkoutSessions.FirstOrDefaultAsync(ws => ws.Id == sessionId && userId == ws.UserId);
+            var session = await _context.WorkoutSessions.FirstOrDefaultAsync(ws => ws.WorkoutId == workoutId && userId == ws.UserId && !ws.IsCompleted);
             if(session == null)
             {
                 return NotFound("Could not find session");
@@ -124,6 +159,67 @@ namespace GymUmbraco.Controllers
             await _context.SaveChangesAsync();
 
             return Ok(session);
+        }
+
+        [Authorize]
+        [HttpGet("latest-session/{workoutId}")]
+        public async Task<IActionResult> GetLatestSession(int workoutId)
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (userIdClaim == null) return Unauthorized("User ID claim saknas");
+
+            var userId = int.Parse(userIdClaim);
+
+            var latestSession = await _context.WorkoutSessions
+                .Include(ws => ws.WorkoutSessionExercises)
+                .Where(ws =>
+                    ws.UserId == userId &&
+                    ws.WorkoutId == workoutId &&
+                    ws.IsCompleted)
+                .OrderByDescending(ws => ws.StartedAt)
+                .FirstOrDefaultAsync();
+
+            if (latestSession == null)
+                return NotFound();
+
+            return Ok(
+                latestSession.WorkoutSessionExercises
+                    .Select(x => new
+                    {
+                        x.ExerciseId,
+                        x.SetNumber,
+                        x.RepsDone,
+                        x.Weight
+                    })
+            );
+        }
+
+        //Om anv refreshar sidan när man redan påbörjat o edita vissa saker vill jag visa upp det ist för att skapa ny session hela tiden
+        [Authorize]
+        [HttpGet("active-session/{workoutId}")]
+        public async Task<IActionResult> GetActiveSession(int workoutId)
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (userIdClaim == null) return Unauthorized("User ID claim saknas");
+
+            var userId = int.Parse(userIdClaim);
+
+            var activeSession = await _context.WorkoutSessions
+                .Include(ws => ws.WorkoutSessionExercises)
+                .FirstOrDefaultAsync(ws => ws.UserId == userId && ws.WorkoutId == workoutId && !ws.IsCompleted);
+
+            if (activeSession == null) return NotFound();
+
+            return Ok(
+                activeSession.WorkoutSessionExercises
+                    .Select(x => new
+                    {
+                        x.ExerciseId,
+                        x.SetNumber,
+                        x.RepsDone,
+                        x.Weight
+                    })
+            );
         }
     }
 }
