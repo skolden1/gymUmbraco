@@ -25,10 +25,13 @@ const Navbar = () => {
             <ul className={toggle ? "activeMenu" : ""}>
               <div className="navLeft">
                 <li>
-                  <Link to="/dashboard">Dashboard</Link>
+                  <Link to="/dashboard">Hem</Link>
                 </li>
                 <li>
                   <Link to="/createProgram">Skapa program</Link>
+                </li>
+                <li>
+                  <Link to="/workoutHistory">Tidigare pass</Link>
                 </li>
               </div>
 

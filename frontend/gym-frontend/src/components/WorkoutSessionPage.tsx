@@ -106,8 +106,14 @@ const WorkoutSessionPage = () => {
       <form action={handleSaveSet} key={`${e.exerciseId}-${i}-${activeSet?.weight}-${activeSet?.repsDone}`}>
         <input type="hidden" name="exerciseId" value={e.exerciseId}/>
         <input type="hidden"name="setNumber" value={i}/>
-        <input type="number"placeholder="Vikt" name="weight" step="0.1" defaultValue={activeSet?.weight ? activeSet.weight : 0} />Kg
-        <input type="number" name="reps" placeholder="Reps" defaultValue={activeSet?.repsDone ? activeSet.repsDone : 0} />
+        <div className="inputGroup">
+          <label>Vikt (KG)</label>
+          <input type="number"placeholder="Vikt" name="weight" step="0.1" defaultValue={activeSet?.weight ? activeSet.weight : 0} />
+        </div>
+        <div className="inputGroup">
+          <label>Reps</label>
+          <input type="number" name="reps" placeholder="Reps" defaultValue={activeSet?.repsDone ? activeSet.repsDone : 0} />
+        </div>
         <button type="submit" className="setSaveBtn">Spara</button>
       </form>
     </div>
@@ -133,9 +139,16 @@ const WorkoutSessionPage = () => {
 
   //todo fixa så att man kan kasta / radera passet, fixa endpoint i c# 
 
-  // const deleteSessionWorkout = async () => {
-  //   const res = await fetch(`https://localhost:44388/api/WorkoutSession/ `)
-  // }
+  const deleteSessionWorkout = async () => {
+    const res = await fetch(`https://localhost:44388/api/WorkoutSession/cancel-session/${workoutId}`, {
+      method: "DELETE",
+      headers: {"Content-Type" : "application/json", Authorization: `Bearer ${localStorage.getItem("token")}`}
+    })
+
+    if(!res.ok) return;
+    alert("Passet är kastat");
+    navigate("/dashboard");
+  }
 
  return (
 <>
@@ -146,8 +159,11 @@ const WorkoutSessionPage = () => {
     <p className="workoutSessionSubTitle">Fyll i dagens resultat</p>
     {renderExercises}
 
-    <button onClick={handleSaveWorkout}>Spara och avsluta pass</button>
-    {/* <button onClick={deleteSessionWorkout}>Kasta pass</button> */}
+    <div className="workoutActions">
+      <button className="completeBtn" onClick={handleSaveWorkout}>Spara och avsluta pass</button>
+      <button className="cancelBtn" onClick={deleteSessionWorkout}>Avbryt aktivt pass</button>
+  </div>
+
   </div>
 </>
 )

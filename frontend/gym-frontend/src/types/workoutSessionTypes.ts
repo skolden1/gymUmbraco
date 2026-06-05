@@ -23,3 +23,10 @@ export type PreviousWorkoutSet = {
   repsDone: number;
   weight: number;
 }
+
+export type CompletedSession = {
+  sessionId: number; 
+  date: string;
+  programName: string;
+  workoutName: string;
+}

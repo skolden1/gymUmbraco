@@ -1,90 +1,178 @@
-.workoutSessionContainer{
+.workoutSessionContainer {
   max-width: 900px;
-  margin: auto;
+  margin: 0 auto;
   padding: 2rem;
 }
 
-.workoutSessionTitle{
+.workoutSessionTitle {
   text-align: center;
   margin-bottom: 0.5rem;
+  font-size: 2rem;
+  color: #222;
 }
 
-.workoutSessionSubTitle{
+.workoutSessionSubTitle {
   text-align: center;
   color: #666;
   margin-bottom: 2rem;
 }
 
-.currentWorkoutCard{
-  background-color: white;
-  border: 1px solid #ddd;
-  border-radius: 10px;
-  padding: 1rem;
-  margin-bottom: 1.5rem;
-}
-
-.currentWorkoutCard h4{
-  margin-bottom: 0.5rem;
-  color: #222;
-}
-
-.workoutPlan{
-  color: #666;
+.currentWorkoutCard {
+  background: white;
+  border: 1px solid #e5e5e5;
+  border-radius: 8px;
+  padding: 1.5rem;
   margin-bottom: 1rem;
 }
 
-.setRow{
-  display: flex;
-  align-items: center;
+.currentWorkoutCard h4 {
+  margin-bottom: 0.25rem;
+  margin: 4px auto 2px auto;
+  font-size: 1.2rem;
+  color: #222;
+}
+
+.workoutPlan {
+  color: #666;
+  margin-bottom: 1.2rem;
+}
+
+.setRow {
+  display: grid;
+  grid-template-columns: 80px 1fr;
   gap: 1rem;
-  margin-bottom: 0.8rem;
-  flex-wrap: wrap;
+  margin-bottom: 1rem;
+  align-items: center;
 }
 
-.setLabel{
-  min-width: 70px;
-  font-weight: bold;
+.setLabel {
+  font-weight: 600;
 }
 
-.setRow input{
-  padding: 8px;
+.setRow form {
+  display: grid;
+  grid-template-columns: 140px 140px 100px;
+  gap: 0.75rem;
+  align-items: end;
+}
+
+
+.inputGroup {
+  display: flex;
+  flex-direction: column;
+}
+
+.inputGroup label {
+  font-size: 0.85rem;
+  color: #666;
+  margin-bottom: 0.35rem;
+}
+
+.setRow input {
+  width: 100%;
+  padding: 0.65rem;
+  border: 1px solid #dcdcdc;
   border-radius: 6px;
-  border: 1px solid #ccc;
-  width: 110px;
-  margin: 5px 5px;
+  font-size: 0.95rem;
+  box-sizing: border-box;
 }
 
-.setSaveBtn{
-  width: auto;
-  padding: 8px 16px;
-  background-color: #33869b;
-  color: white;
+.setRow input:focus {
+  outline: none;
+  border-color: #33869b;
+}
+
+.setSaveBtn {
   border: none;
   border-radius: 6px;
+  padding: 0.65rem 1rem;
+  background: #33869b;
+  color: white;
   cursor: pointer;
 }
 
-.setSaveBtn:hover{
-  background-color: #2a6e7b;
+.setSaveBtn:hover {
+  background: #2d7487;
 }
 
+.workoutActions {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin-top: 2rem;
+}
 
-@media(max-width:700px){
+.completeBtn {
+  padding: 0.85rem 1.5rem;
+  border: none;
+  border-radius: 6px;
+  background: #2f7d32;
+  color: white;
+  cursor: pointer;
+}
 
-  .workoutSessionContainer{
+.completeBtn:hover {
+  background: #286a2b;
+}
+
+.cancelBtn {
+  padding: 0.85rem 1.5rem;
+  border: none;
+  border-radius: 6px;
+  background: #d9534f;
+  color: white;
+  cursor: pointer;
+}
+
+.cancelBtn:hover {
+  background: #c9302c;
+}
+
+/* Mobil */
+
+@media (max-width: 700px) {
+
+  .workoutSessionContainer {
     padding: 1rem;
   }
 
-  .setRow{
-    flex-direction: column;
-    align-items: stretch;
+  .currentWorkoutCard {
+    padding: 1.25rem;
   }
 
-  .setRow input{
+  .setRow {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .setLabel {
+    width: 100%;
+    margin-bottom: 0;
+  }
+
+  .setRow form {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .inputGroup {
     width: 100%;
   }
 
-  .setSaveBtn{
-    margin: 5px;
+  .setSaveBtn {
+    width: 100%;
+  }
+
+  .workoutActions {
+    flex-direction: column;
+  }
+
+  .completeBtn,
+  .cancelBtn {
+    width: 100%;
   }
 }
