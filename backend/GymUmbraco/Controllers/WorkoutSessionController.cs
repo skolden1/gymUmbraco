@@ -221,5 +221,57 @@ namespace GymUmbraco.Controllers
                     })
             );
         }
+
+        //refaktorera till service fil senare
+        //Om anv väljer att kasta nuvarande aktiva pass
+        [Authorize]
+        [HttpDelete("cancel-session/{workoutId}")]
+        public async Task<IActionResult> CancelWorkoutSession(int workoutId)
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (userIdClaim == null) return Unauthorized("User ID claim saknas");
+
+            var userId = int.Parse(userIdClaim);
+
+            var activeSession = await _context.WorkoutSessions.FirstOrDefaultAsync(ws => ws.UserId == userId && ws.WorkoutId == workoutId && !ws.IsCompleted);
+            if(activeSession == null) return NotFound();
+
+           _context.WorkoutSessions.Remove(activeSession);
+           await _context.SaveChangesAsync();
+
+            return NoContent();
+        }
+
+        //historik / jämförelse sidan
+        [Authorize]
+        [HttpGet("completed-sessions")]
+        public async Task<IActionResult> GetCompletedSessions()
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (userIdClaim == null) return Unauthorized("User ID claim saknas");
+
+            var userId = int.Parse(userIdClaim);
+
+            var completedSessions = await _context.WorkoutSessions.Where(ws => ws.UserId == userId && ws.IsCompleted)
+                .OrderByDescending(ws => ws.StartedAt)
+                //Select includear automatiskt genom navprops
+                .Select(ws => new
+                {
+                    SessionId = ws.Id,
+                    Date = ws.StartedAt,
+                    ProgramName = ws.Workout.GymProgram.ProgramName,
+                    WorkoutName = ws.Workout.WorkoutName
+                    
+                })
+                .ToListAsync();
+
+            if(!completedSessions.Any()) return NotFound("No completed sessions found");
+
+            return Ok(completedSessions);
+        }
+        // typ som ovan men här hämtar vi mer detaljerad info om passet, vilka övningar, reps, vikt etc
+        //[Authorize]
+        //[HttpGet("session-details/{sessionId}")]
+
     }
 }
