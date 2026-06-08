@@ -270,8 +270,30 @@ namespace GymUmbraco.Controllers
             return Ok(completedSessions);
         }
         // typ som ovan men här hämtar vi mer detaljerad info om passet, vilka övningar, reps, vikt etc
-        //[Authorize]
-        //[HttpGet("session-details/{sessionId}")]
+        [Authorize]
+        [HttpGet("session-details/{sessionId}")]
+        public async Task<IActionResult> GetCompletedSessionDetails(int sessionId)
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (userIdClaim == null) return Unauthorized("User ID claim saknas");
 
+            var userId = int.Parse(userIdClaim);
+
+            var sessionDetails = await _context.WorkoutSessions.Where(ws => ws.Id == sessionId && ws.UserId == userId && ws.IsCompleted)
+                .Select(ws => new
+                {
+                    SessionId = ws.Id,
+                    Exercises = ws.WorkoutSessionExercises.Select(wse => new
+                    {
+                        ExerciseName = wse.Exercise.ExerciseName,
+                        wse.SetNumber,
+                        wse.RepsDone,
+                        wse.Weight
+                    })
+                }).FirstOrDefaultAsync();
+
+            if (sessionDetails == null) return NotFound("Kunde inte hitta passet");
+            return Ok(sessionDetails);
+        }
     }
 }
