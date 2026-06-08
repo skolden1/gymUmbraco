@@ -30,3 +30,15 @@ export type CompletedSession = {
   programName: string;
   workoutName: string;
 }
+
+export type CompletedSessionExercise = {
+  exerciseName: string;
+  setNumber: number;
+  repsDone: number;
+  weight: number;
+}
+
+export type CompletedSessionDetails = {
+  sessionId: number;
+  exercises: CompletedSessionExercise[];
+}

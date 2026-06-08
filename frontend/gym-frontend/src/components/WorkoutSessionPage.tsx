@@ -5,6 +5,7 @@ import type { GymProgramDetail } from "../types/gymProgramTypes";
 import type { PreviousWorkoutSet, SaveWorkoutSetDto, WorkoutSessionExercise } from "../types/workoutSessionTypes";
 import { useAuth } from "../contexts/AuthContext";
 import "../components/WorkoutSessionPage.css"
+import { FaCheckCircle } from "react-icons/fa";
 
 const WorkoutSessionPage = () => {
 
@@ -13,6 +14,9 @@ const WorkoutSessionPage = () => {
 
   const { logout } = useAuth()
   const [gymProgram, setGymProgram] = useState<GymProgramDetail | null>(null);
+
+  //modal som visas i några sek att anv har sparat
+  const [savedSet, setSavedSet] = useState<string | null>(null);
 
   //Hämta senaste aktiva passet (som inte är avslutat (set detaljer))
   const [latestSession, setLatestSession] = useState<PreviousWorkoutSet[]>([]);
@@ -84,7 +88,13 @@ const WorkoutSessionPage = () => {
     }
 
     const data: WorkoutSessionExercise = await res.json();
-    console.log("Sparat set:", data);
+    const key = `${exerciseId}-${setNumber}`;
+    setSavedSet(key);
+
+    setTimeout(() => {
+      setSavedSet(null);
+    }, 4000);
+
     await getLatestSession();
   }
   
@@ -114,7 +124,13 @@ const WorkoutSessionPage = () => {
           <label>Reps</label>
           <input type="number" name="reps" placeholder="Reps" defaultValue={activeSet?.repsDone ? activeSet.repsDone : 0} />
         </div>
-        <button type="submit" className="setSaveBtn">Spara</button>
+        <button type="submit" className="setSaveBtn">{activeSet ? "Uppdatera" : "Spara"}</button>
+        {
+          savedSet === `${e.exerciseId}-${i}` &&
+          <span className="savedIndicator">
+            <FaCheckCircle /> Sparat
+          </span>
+        }
       </form>
     </div>
     )
