@@ -1,98 +1,237 @@
-.workoutHistoryContainer {
-  max-width: 800px;
-  margin: 0 auto;
+.historySection {
+  max-width: 850px;
+  margin: 20px auto;
   padding: 2rem;
+
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  border-radius: 20px;
+
+  box-shadow:
+    0 8px 24px rgba(15, 23, 42, 0.06);
+}
+
+.workoutHistoryContainer {
+  max-width: 900px;
+  margin: 0 auto;
 }
 
 .workoutHistoryTitle {
   text-align: center;
   margin-bottom: 2rem;
-  color: #1f2937;
+  color: #0f172a;
+  font-size: 2.2rem;
+}
+
+.historyControls {
+  position: relative;
+  height: 40px;
+  margin-bottom: 1.5rem;
+}
+
+.dropDownHistory {
+  position: absolute;
+  left: 0;
+  top: 0;
+
+  height: 40px;
+  padding: 0 0.75rem;
+
+  border-radius: 8px;
+  border: 1px solid #d1d5db;
+  background: white;
+  cursor: pointer;
+}
+
+.searchInput {
+  display: block;
+
+  width: 100%;
+  max-width: 320px;
+  height: 40px;
+
+  margin: 0 auto;
+
+  padding: 0 1rem;
+
+  border: 1px solid #d1d5db;
+  border-radius: 10px;
+
+  background: white;
+  color: #111827;
+
+  font-size: 0.95rem;
+
+  box-sizing: border-box;
+  transition: all 0.2s ease;
+}
+
+.searchInput:focus {
+  outline: none;
+  border-color: #56aabe;
+
+  box-shadow:
+    0 0 0 3px rgba(86, 170, 190, 0.15);
+}
+
+.searchInput::placeholder {
+  color: #9ca3af;
+}
+
+.workoutHistoryGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+  align-items: start;
 }
 
 .sessionCard {
   background: white;
+  border-radius: 16px;
+  padding: 1.4rem;
   border: 1px solid #e5e7eb;
-  border-radius: 8px;
-  padding: 1.25rem;
-  margin-bottom: 1rem;
+
+  box-shadow:
+    0 2px 8px rgba(0, 0, 0, 0.04),
+    0 8px 20px rgba(0, 0, 0, 0.05);
+
+  transition: all 0.2s ease;
+}
+
+.sessionCard:hover {
+  transform: translateY(-2px);
+
+  box-shadow:
+    0 4px 12px rgba(0, 0, 0, 0.06),
+    0 12px 24px rgba(0, 0, 0, 0.08);
 }
 
 .sessionCard h2 {
-  margin-bottom: 0.25rem;
-  font-size: 1.3rem;
+  font-size: 1.4rem;
+  margin-bottom: 0.3rem;
   color: #111827;
 }
 
-.sessionCard p {
-  margin: 0.25rem 0;
-}
-
 .sessionCard > p {
-  color: #4b5563;
+  color: #475569;
+  margin-top: 0.4rem;
 }
 
 .sessionCardRow {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-top: 0.75rem;
-  color: #6b7280;
+  margin-top: 1rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #e5e7eb;
+  color: #64748b;
 }
 
 .infoTxt {
-  cursor: pointer;
-  color: #33869b;
+  margin-top: 1rem;
+  text-align: center;
+  color: #2563eb;
   font-weight: 600;
-  text-decoration: none;
+  cursor: pointer;
 }
 
 .infoTxt:hover {
-  color: #2d7487;
+  color: #1d4ed8;
 }
+
 
 .exerciseDetails {
   margin-top: 1rem;
-  padding-top: 1rem;
-  border-top: 1px solid #ececec;
 }
 
 .exerciseDetailRow {
-  padding: 0.5rem 0;
+  margin-bottom: 1rem;
 }
 
 .exerciseName {
   font-size: 1rem;
   font-weight: 700;
   color: #111827;
-  margin-top: 0.75rem;
-  margin-bottom: 0.35rem;
+  margin-bottom: 0.5rem;
 }
 
-.exerciseStats {
+.exerciseSetRow {
+  display: grid;
+  grid-template-columns: 80px 100px 100px;
+  gap: 1rem;
+  padding: 0.4rem 0;
   color: #4b5563;
-  margin-left: 1rem;
   font-size: 0.95rem;
 }
 
-/* Mobil */
+.exerciseSetRow:not(:last-child) {
+  border-bottom: 1px solid #f1f5f9;
+}
 
+.setCol {
+  font-weight: 600;
+}
+
+.repsCol {
+  text-align: left;
+}
+
+.weightCol {
+  text-align: left;
+  font-weight: 700;
+  color: #1f2937;
+}
+
+/* Mobile */
 @media (max-width: 700px) {
-  .workoutHistoryContainer {
+
+  .historySection {
+    margin: 0;
+    border-radius: 0;
     padding: 1rem;
+    border: none;
+    box-shadow: none;
+  }
+
+  .workoutHistoryContainer {
+    padding: 0;
+  }
+
+  .workoutHistoryTitle {
+    font-size: 1.8rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .historyControls {
+    position: static;
+    height: auto;
+
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .dropDownHistory {
+    position: static;
+    width: 100%;
+  }
+
+  .searchInput {
+    max-width: 100%;
+  }
+
+  .workoutHistoryGrid {
+    grid-template-columns: 1fr;
   }
 
   .sessionCard {
     padding: 1rem;
   }
 
-  .sessionCardRow {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.5rem;
+  .sessionCard h2 {
+    font-size: 1.2rem;
   }
 
-  .exerciseStats {
-    margin-left: 0.75rem;
+  .exerciseSetRow {
+    grid-template-columns: 70px 90px 80px;
+    gap: 0.5rem;
+    font-size: 0.9rem;
   }
 }
