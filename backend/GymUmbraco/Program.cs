@@ -21,6 +21,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 
 
 builder.Services.AddScoped<GymProgramService>();
+builder.Services.AddScoped<WorkoutSessionService>();
 
 
 builder.Services.AddCors(options =>

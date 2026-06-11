@@ -1,6 +1,7 @@
 ﻿using GymUmbraco.Data;
 using GymUmbraco.Dtos;
 using GymUmbraco.Models;
+using GymUmbraco.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -13,9 +14,11 @@ namespace GymUmbraco.Controllers
     public class WorkoutSessionController : ControllerBase
     {
         private readonly AppDbContext _context; //refaktorera till servci senare
-        public WorkoutSessionController(AppDbContext context)
+        private readonly WorkoutSessionService _workoutSessionService;
+        public WorkoutSessionController(AppDbContext context, WorkoutSessionService workoutSessionService)
         {
             _context = context;
+            _workoutSessionService = workoutSessionService;
         }
 
         [Authorize]
@@ -26,91 +29,16 @@ namespace GymUmbraco.Controllers
             if (userIdClaim == null) return Unauthorized("User ID claim saknas");
 
             var userId = int.Parse(userIdClaim);
-
-            var workoutExists = await _context.Workouts
-                .Include(w => w.GymProgram)
-                .AnyAsync(w => w.Id == dto.WorkoutId && w.GymProgram.UserId == userId);
-
-            if (!workoutExists)
+            try
             {
-                return Unauthorized("Workout tillhör inte användaren");
+                var result = await _workoutSessionService.SaveWorkoutSet(dto, userId);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
             }
 
-            var exerciseExists = await _context.WorkoutExercises
-                .AnyAsync(we =>
-                    we.WorkoutId == dto.WorkoutId &&
-                    we.ExerciseId == dto.ExerciseId);
-
-            if (!exerciseExists)
-            {
-                return BadRequest("Couldnt not find that exercise in the workout");
-            }
-
-            var workoutSession = await _context.WorkoutSessions
-                .FirstOrDefaultAsync(ws =>
-                    ws.UserId == userId &&
-                    ws.WorkoutId == dto.WorkoutId &&
-                    !ws.IsCompleted);
-
-            if (workoutSession == null)
-            {
-                workoutSession = new WorkoutSession
-                {
-                    UserId = userId,
-                    WorkoutId = dto.WorkoutId,
-                    StartedAt = DateTime.UtcNow,
-                    IsCompleted = false
-                };
-
-                _context.WorkoutSessions.Add(workoutSession);
-                await _context.SaveChangesAsync();
-            }
-
-            var existingSet = await _context.WorkoutSessionExercises
-                .FirstOrDefaultAsync(wse =>
-                    wse.WorkoutSessionId == workoutSession.Id &&
-                    wse.ExerciseId == dto.ExerciseId &&
-                    wse.SetNumber == dto.SetNumber);
-
-            if (existingSet != null)
-            {
-                existingSet.RepsDone = dto.RepsDone;
-                existingSet.Weight = dto.Weight;
-
-                await _context.SaveChangesAsync();
-
-                return Ok(new
-                {
-                    existingSet.Id,
-                    existingSet.WorkoutSessionId,
-                    existingSet.ExerciseId,
-                    existingSet.SetNumber,
-                    existingSet.RepsDone,
-                    existingSet.Weight
-                });
-            }
-
-            var workoutSessionExercise = new WorkoutSessionExercise
-            {
-                WorkoutSessionId = workoutSession.Id,
-                ExerciseId = dto.ExerciseId,
-                SetNumber = dto.SetNumber,
-                RepsDone = dto.RepsDone,
-                Weight = dto.Weight,
-            };
-
-            await _context.WorkoutSessionExercises.AddAsync(workoutSessionExercise);
-            await _context.SaveChangesAsync();
-
-            return Ok(new
-            {
-                workoutSessionExercise.Id,
-                workoutSessionExercise.WorkoutSessionId,
-                workoutSessionExercise.ExerciseId,
-                workoutSessionExercise.SetNumber,
-                workoutSessionExercise.RepsDone,
-                workoutSessionExercise.Weight
-            });
         }
 
 
